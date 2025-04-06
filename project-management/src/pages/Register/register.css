@@ -1,0 +1,109 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f9fafb;
+}
+
+.register-container {
+  display: flex;
+  height: 100vh;
+}
+
+.register-image-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFF9E3;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.register-form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.register-box {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
+}
+
+.register-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc !important;
+  border-radius: 8px;
+  background: #f3f3f3 !important;
+  font-size: 16px;
+}
+
+.register-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #D76CD9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.register-button:hover {
+  background-color: #c67bc7;
+}
+
+.register-links {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.register-links a {
+  color: #6c47ff;
+  text-decoration: none;
+}
+
+.register-links a:hover {
+  text-decoration: underline;
+}
+
+.password-container {
+  position: relative;
+}
+
+.password-container .eye-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.text-Thema {
+  color: #d76cd9; /* Cor do texto */
+  font-size: 2rem; /* Ajuste o tamanho conforme necessário */
+  text-align: center;
+}
+
+.w-96 {
+  width: 24rem; /* Certifique-se de que o texto e o formulário compartilhem esta largura */
+  margin: 0 auto;
+}
+
+.registerall {
+    display: flex;
+    
+}
