@@ -1,0 +1,138 @@
+/* Fonte personalizada */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f9fafb;
+}
+
+/* Ajuste de layout da tela de login */
+.login-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Seção da imagem */
+.login-image-section {
+  flex: 1; /* Garante que a seção ocupe 50% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #6c47ff; /* Cor roxa */
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box; /* Inclui padding no cálculo do tamanho */
+}
+
+/* Seção do formulário */
+.login-form-section {
+  flex: 1; /* Garante que a seção ocupe 50% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  box-sizing: border-box; /* Inclui padding no cálculo do tamanho */
+}
+
+/* Caixa do formulário */
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
+}
+
+/* Estilo dos inputs */
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f3f3f3;
+  font-size: 16px;
+}
+
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #D76CD9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-button:hover {
+  background-color: #c67bc7;
+}
+
+/* Links abaixo do formulário */
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.login-links a {
+  color: #6c47ff;
+  text-decoration: none;
+}
+
+.login-links a:hover {
+  text-decoration: underline;
+}
+
+/* Ícone do olho na senha */
+.password-container {
+  position: relative;
+}
+
+.password-container .eye-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.idimg {
+  width: 80%; 
+  max-width: 75rem; 
+  height: auto; 
+  border-radius: 10px; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+}
+
+.text-Thema {
+  color: #D76CD9;
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.text-login{
+  font-size: 0.9rem;
+}
+
+.btn-visibility{
+  background-color: #F2F2F2;
+  color: black;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.register {
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 15px;
+}
