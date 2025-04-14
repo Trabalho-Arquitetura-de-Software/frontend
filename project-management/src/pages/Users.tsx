@@ -179,6 +179,8 @@ export default function Users() {
                                                 <ActionConfirmationModal
                                                     title={`Deletando ${user.name}`}
                                                     description={`Tem certeza que deseja deletar ${user.name}?`}
+                                                    confirmText='Deletar'
+                                                    cancelText='Cancelar'
                                                 >
                                                     {(show) => (
                                                         <div className="cursor-pointer">
