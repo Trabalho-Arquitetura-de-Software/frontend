@@ -1,11 +1,31 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client'
+import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
 import AppRoutes from './Routes/routes'
 import { Toaster } from '@/components/ui/toaster'
 
-// Configurar o cliente Apollo com uma URL mockada para desenvolvimento
+// Configurar o link HTTP para o GraphQL
+const httpLink = createHttpLink({
+  uri: 'http://localhost:8080/graphql',
+});
+
+// Adicionar o token de autenticação ao cabeçalho de cada requisição
+const authLink = setContext((_, { headers }) => {
+  // Obter token do armazenamento local
+  const token = localStorage.getItem('token');
+  
+  // Retornar os headers para o contexto
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  };
+});
+
+// Configurar o cliente Apollo com o link de autenticação
 const client = new ApolloClient({
-  uri: 'http://localhost:8080/graphql', // Substitua pela URL real quando disponível
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
   defaultOptions: {
     mutate: {
