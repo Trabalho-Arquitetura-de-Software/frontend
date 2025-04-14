@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, LogOut, PieChart, Plus, Search, Settings, Users } from "lucide-react"
+import { Home, Inbox, LogOut, Plus, Settings, UserCog, Users } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
 import { useState } from "react"
@@ -13,9 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
+
 export function AppSidebar() {
     const [open, setOpen] = useState(false)
-
     const navigate = useNavigate();
     
     const handleLogout = () => {
@@ -27,7 +27,7 @@ export function AppSidebar() {
 
     const menuItems = [
         {
-            title: "Dashboard",
+            title: "Home",
             url: "/home",
             icon: Home,
         },
@@ -37,19 +37,14 @@ export function AppSidebar() {
             icon: Inbox,
         },
         {
-            title: "Equipe",
-            url: "/team",
+            title: "Equipes",
+            url: "/teams",
             icon: Users,
         },
         {
-            title: "Calendário",
-            url: "/calendar",
-            icon: Calendar,
-        },
-        {
-            title: "Relatórios",
-            url: "/reports",
-            icon: PieChart,
+            title: "Usuários",
+            url: "/users",
+            icon: UserCog,
         },
         {
             title: "Configurações",
@@ -78,8 +73,9 @@ export function AppSidebar() {
                         <NewProjectModal/>
                     </Dialog>
 
-
-                    <Button className="w-full bg-primary-dark hover:bg-primary-darker text-white">
+                    <Button 
+                        className="w-full bg-primary-dark hover:bg-primary-darker text-white"
+                    >
                         <Plus size={16} /> Adicionar usuário
                     </Button>
                 </div>
@@ -96,7 +92,6 @@ export function AppSidebar() {
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
-                
                 <div className="absolute bottom-4 left-4 right-4">
                     <Button 
                         variant="outline" 
