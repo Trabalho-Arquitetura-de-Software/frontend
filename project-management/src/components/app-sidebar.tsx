@@ -1,9 +1,21 @@
 import { Calendar, Home, Inbox, LogOut, PieChart, Plus, Search, Settings, Users } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
-import { Button } from "./ui/button"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { NewProjectModal } from "./modal/new-project-modal"	
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export function AppSidebar() {
+    const [open, setOpen] = useState(false)
+
     const navigate = useNavigate();
     
     const handleLogout = () => {
@@ -59,9 +71,14 @@ export function AppSidebar() {
             
             <SidebarContent className="bg-gray-50 border-r border-gray-200 h-full">
                 <div className="p-4 flex flex-col gap-2">
-                    <Button className="w-full bg-primary-dark hover:bg-primary-darker text-white">
+                    <Button onClick={() => setOpen(true)} className="w-full bg-primary-dark hover:bg-primary-darker text-white">
                         <Plus size={16} /> Novo Projeto
                     </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <NewProjectModal/>
+                    </Dialog>
+
+
                     <Button className="w-full bg-primary-dark hover:bg-primary-darker text-white">
                         <Plus size={16} /> Adicionar usuário
                     </Button>
