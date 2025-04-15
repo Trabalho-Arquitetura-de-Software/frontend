@@ -12,9 +12,10 @@ import {
 
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { PencilIcon, Plus, Trash2 } from 'lucide-react'
 import { CreateUserData, NewUserModal } from "@/components/modal/new-user-modal"
 import { useState } from 'react'
+import { ActionConfirmationModal } from '@/components/modal/action-confirmation-modal'
 
 // Define o enum de acordo com a API
 export enum UserRole {
@@ -46,10 +47,22 @@ const CREATE_USER = gql`
     }
 `
 
+const DELETE_USER = gql`
+    mutation DeleteUser($id: ID!) {
+        deleteUser(id: $id) {
+            id
+            name
+            email
+            role
+        }
+    }
+`
+
 export default function Users() {
     const { loading, error, data } = useQuery(GET_USERS)
     const [addNewUserModalOpen, setAddNewUserModalOpen] = useState(false)
     const [createUser] = useMutation(CREATE_USER);
+    const [deleteUser] = useMutation(DELETE_USER);
 
     // Manipular o erro de forma segura
     if (error) {
@@ -90,14 +103,42 @@ export default function Users() {
         });
     }
 
+    function handleDeleteUser(user_id: string): void {
+        console.log("Deleting user with ID:", user_id);
+        console.log(typeof user_id);
+        deleteUser({
+            variables: {
+                id: user_id
+            },
+            refetchQueries: [{ query: GET_USERS }],
+            onCompleted: (data) => {
+                console.log("User deleted successfully:", data);
+                toast({
+                    title: "Sucesso",
+                    description: "Usuário deletado com sucesso.",
+                });
+            },
+            onError: (err) => {
+                console.error("Error deleting user:", err);
+                toast({
+                    title: "Erro",
+                    description: `Falha ao deletar usuário: ${err.message}`,
+                    variant: "destructive",
+                });
+            }
+        });
+    }
+
     return (
         <div className="container mx-auto py-8">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Usuários</CardTitle>
-                    <Button onClick={() => setAddNewUserModalOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4"/> Adicionar Usuário
-                    </Button>
+                    <CardTitle>
+                        <h1 className='text-2xl my-4'>Usuários</h1>
+                        <Button onClick={() => setAddNewUserModalOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" /> Adicionar Usuário
+                        </Button>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     {loading ? (
@@ -109,20 +150,53 @@ export default function Users() {
                             Erro ao carregar usuários. Por favor, tente novamente.
                         </div>
                     ) : data && data.findAllUsers ? (
-                        <Table>
+                        <Table className="w-full">
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Nome</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Papel</TableHead>
+                                    <TableHead className="w-[100px]">Nome</TableHead>
+                                    <TableHead className="w-[250px]">Email</TableHead>
+                                    <TableHead className="w-[100px]">Papel</TableHead>
+                                    <TableHead className="w-[80px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {data.findAllUsers.map((user: any) => (
                                     <TableRow key={user.id}>
-                                        <TableCell>{user.name}</TableCell>
-                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell className="max-w-[200px]">
+                                            <div className="truncate" title={user.name}>{user.name}</div>
+                                        </TableCell>
+                                        <TableCell className="max-w-[250px]">
+                                            <div className="truncate" title={user.email}>{user.email}</div>
+                                        </TableCell>
                                         <TableCell>{user.role}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center justify-end space-x-2">
+                                                <Button
+                                                    variant={"outline"}
+                                                >
+                                                    <PencilIcon/>
+                                                </Button>
+                                                <ActionConfirmationModal
+                                                    title={`Deletando ${user.name}`}
+                                                    description={`Tem certeza que deseja deletar ${user.name}?`}
+                                                    confirmText='Deletar'
+                                                    cancelText='Cancelar'
+                                                >
+                                                    {(show) => (
+                                                        <div className="cursor-pointer">
+                                                            <Button
+                                                                variant={"outline"}
+                                                                onClick={show(() => {
+                                                                    handleDeleteUser(user.id)
+                                                                })}
+                                                            >
+                                                                <Trash2 />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </ActionConfirmationModal>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
