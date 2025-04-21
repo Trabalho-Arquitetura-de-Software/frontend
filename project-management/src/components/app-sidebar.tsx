@@ -41,6 +41,16 @@ export function AppSidebar() {
             url: "/teams",
             icon: Users,
         },
+        // {
+        //     title: "Calendário",
+        //     url: "/calendar",
+        //     icon: Calendar,
+        // },
+        // {
+        //     title: "Relatórios",
+        //     url: "/reports",
+        //     icon: PieChart,
+        // },
         {
             title: "Usuários",
             url: "/users",

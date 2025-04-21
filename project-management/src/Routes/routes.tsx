@@ -13,6 +13,7 @@ function AppRoutes() {
         <Route path="/users" element={<Users />} />
         {/* <Route path="/projects" element={<Projects />} /> */}
         {/* <Route path="/tasks" element={<Tasks />} /> */}
+        <Route path="/users" element={<Users />} />
       </Routes>
   );
 }
