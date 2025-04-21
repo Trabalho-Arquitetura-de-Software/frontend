@@ -1,192 +1,219 @@
-// import { AppSidebar } from "@/components/app-sidebar";
-// import { SidebarProvider } from "@/components/ui/sidebar";
-// import { useEffect } from "react";
-
-// export function Home() {
-//     // Função para remover as restrições de layout ao entrar na página Home
-//     useEffect(() => {
-//         const rootElement = document.getElementById('root')
-//         if (rootElement) {
-//             rootElement.style.maxWidth = "100%"
-//             rootElement.style.padding = "0"
-            
-//             return () => {
-//                 rootElement.style.maxWidth = "1280px"
-//                 rootElement.style.padding = "2rem"
-//             }
-//         }
-//     }, [])
-
-//     return (
-//         <SidebarProvider>
-//             <div className="flex h-screen w-full">
-//                 <AppSidebar />
-//                 <main className="flex-1 p-6 bg-gray-50">
-//                     <div className="max-w-5xl mx-auto">
-//                         <h1 className="text-3xl font-bold mb-6">Usuarios</h1>
-                        
-//                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//                             <DashboardCard 
-//                                 title="Projetos" 
-//                                 description="Gerencie seus projetos aqui."
-//                             />
-//                         </div>
-                    
-//                     </div>
-//                 </main>
-//             </div>
-//         </SidebarProvider>
-//     )
-// }
-
-// // Componente auxiliar para cards de dashboard
-// function DashboardCard({ title, description }: { title: string, description: string }) {
-//     return (
-//         <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-//             <h2 className="text-xl font-semibold mb-2 text-primary-dark">{title}</h2>
-//             <p className="text-gray-600">{description}</p>
-//             <button className="mt-4 px-4 py-2 bg-primary-dark hover:bg-primary-darker text-white rounded-md text-sm">
-//                 Ver detalhes
-//             </button>
-//         </div>
-//     );
-// }
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMutation, useQuery } from '@apollo/client'
+import { gql } from '@apollo/client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-  } from "@/components/ui/tooltip";
-import { NewUserModal } from "@/components/modal/new-user-modal";
-import { Dialog } from "@/components/ui/dialog";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
+import { toast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
+import { PencilIcon, Plus, Trash2 } from 'lucide-react'
+import { CreateUserData, NewUserModal } from "@/components/modal/new-user-modal"
+import { useState } from 'react'
+import { ActionConfirmationModal } from '@/components/modal/action-confirmation-modal'
+
+// Define o enum de acordo com a API
+export enum UserRole {
+    ADMIN = 'ADMIN',
+    PROFESSOR = 'PROFESSOR',
+    STUDENT = 'STUDENT'
 }
 
-export function Users() {
-    const [open, setOpen] = useState(false)
-
-  const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const rootElement = document.getElementById("root");
-    if (rootElement) {
-      rootElement.style.maxWidth = "100%";
-      rootElement.style.padding = "0";
-
-      return () => {
-        rootElement.style.maxWidth = "1280px";
-        rootElement.style.padding = "2rem";
-      };
+const GET_USERS = gql`
+    query {
+        findAllUsers {
+            id
+            email
+            name
+            role
+        }
     }
-  }, []);
+`
 
-  useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: "1",
-        name: "Ana Silva",
-        email: "ana.silva@email.com",
-      },
-      {
-        id: "2",
-        name: "João Pereira",
-        email: "joao.pereira@email.com",
-      },
-      {
-        id: "3",
-        name: "Maria Oliveira",
-        email: "maria.oliveira@email.com",
-      },
-    ];
+// Mutação corrigida usando o tipo UserRole e selecionando subcampos do retorno
+const CREATE_USER = gql`
+    mutation SaveUser($email: String!, $name: String!, $password: String!, $role: UserRole!) {
+        saveUser(email: $email, name: $name, password: $password, role: $role) {
+            id
+            name
+            email
+            role
+        }
+    }
+`
 
-    setUsers(mockUsers);
-  }, []);
+const DELETE_USER = gql`
+    mutation DeleteUser($id: ID!) {
+        deleteUser(id: $id) {
+            id
+            name
+            email
+            role
+        }
+    }
+`
 
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <main className="flex-1 p-6 bg-gray-50">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-4 mb-6">
-              <h1 className="text-3xl font-bold">Usuários</h1>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button
-                    onClick={() => setOpen(true)}
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full w-10 h-10 bg-[#5F075F] hover:bg-[#4A0550] border-none"
-                    >
-                      <Plus className="h-5 w-5 text-white" />
-                    </Button>
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <NewUserModal/>
-                    </Dialog>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Adicionar novo usuário</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+export default function Users() {
+    const { loading, error, data } = useQuery(GET_USERS)
+    const [addNewUserModalOpen, setAddNewUserModalOpen] = useState(false)
+    const [createUser] = useMutation(CREATE_USER);
+    const [deleteUser] = useMutation(DELETE_USER);
 
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <h2 className="text-2xl font-bold">Professores</h2>
+    // Manipular o erro de forma segura
+    if (error) {
+        console.error("GraphQL error:", error);
+        toast({
+            title: "Erro",
+            description: "Falha ao buscar usuários.",
+            variant: "destructive",
+        });
+    }
 
-            <div className="mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <DashboardCard
-                    key={user.id}
-                    title={user.name}
-                    description={user.email}
-                  />
-                ))
-              ) : (
-                <p className="text-gray-600">Nenhum usuário encontrado.</p>
-              )}
-            </div>
+    function handleCreateUser(userData: CreateUserData): void {
+        console.log("Creating user with data:", userData);
+        createUser({
+            variables: {
+                email: userData.email,
+                name: userData.name,
+                password: userData.password,
+                role: userData.role as UserRole // Asseguramos que o role seja tratado como UserRole
+            },
+            refetchQueries: [{ query: GET_USERS }],
+            onCompleted: (data) => {
+                console.log("User created successfully:", data);
+                setAddNewUserModalOpen(false);
+                toast({
+                    title: "Sucesso",
+                    description: "Usuário criado com sucesso.",
+                });
+            },
+            onError: (err) => {
+                console.error("Error creating user:", err);
+                toast({
+                    title: "Erro",
+                    description: `Falha ao criar usuário: ${err.message}`,
+                    variant: "destructive",
+                });
+            }
+        });
+    }
 
-            <h2 className="text-2xl font-bold mt-5">Alunos</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <DashboardCard
-                    key={user.id}
-                    title={user.name}
-                    description={user.email}
-                  />
-                ))
-              ) : (
-                <p className="text-gray-600">Nenhum usuário encontrado.</p>
-              )}
-            </div>
+    function handleDeleteUser(user_id: string): void {
+        console.log("Deleting user with ID:", user_id);
+        console.log(typeof user_id);
+        deleteUser({
+            variables: {
+                id: user_id
+            },
+            refetchQueries: [{ query: GET_USERS }],
+            onCompleted: (data) => {
+                console.log("User deleted successfully:", data);
+                toast({
+                    title: "Sucesso",
+                    description: "Usuário deletado com sucesso.",
+                });
+            },
+            onError: (err) => {
+                console.error("Error deleting user:", err);
+                toast({
+                    title: "Erro",
+                    description: `Falha ao deletar usuário: ${err.message}`,
+                    variant: "destructive",
+                });
+            }
+        });
+    }
 
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
-  );
-}
-
-function DashboardCard({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-      <h2 className="text-xl font-semibold mb-2 text-primary-dark">{title}</h2>
-      <p className="text-gray-600">{description}</p>
-
-    </div>
-  );
+    return (
+        <div className="container mx-auto py-8">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>
+                        <h1 className='text-2xl my-4'>Usuários</h1>
+                        <Button onClick={() => setAddNewUserModalOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" /> Adicionar Usuário
+                        </Button>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {loading ? (
+                        <div className="flex items-center justify-center py-8">
+                            Carregando usuários...
+                        </div>
+                    ) : error ? (
+                        <div className="flex items-center justify-center py-8 text-red-500">
+                            Erro ao carregar usuários. Por favor, tente novamente.
+                        </div>
+                    ) : data && data.findAllUsers ? (
+                        <Table className="w-full">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[100px]">Nome</TableHead>
+                                    <TableHead className="w-[250px]">Email</TableHead>
+                                    <TableHead className="w-[100px]">Papel</TableHead>
+                                    <TableHead className="w-[80px]"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {data.findAllUsers.map((user: any) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="max-w-[200px]">
+                                            <div className="truncate" title={user.name}>{user.name}</div>
+                                        </TableCell>
+                                        <TableCell className="max-w-[250px]">
+                                            <div className="truncate" title={user.email}>{user.email}</div>
+                                        </TableCell>
+                                        <TableCell>{user.role}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center justify-end space-x-2">
+                                                <Button
+                                                    variant={"outline"}
+                                                >
+                                                    <PencilIcon/>
+                                                </Button>
+                                                <ActionConfirmationModal
+                                                    title={`Deletando ${user.name}`}
+                                                    description={`Tem certeza que deseja deletar ${user.name}?`}
+                                                    confirmText='Deletar'
+                                                    cancelText='Cancelar'
+                                                >
+                                                    {(show) => (
+                                                        <div className="cursor-pointer">
+                                                            <Button
+                                                                variant={"outline"}
+                                                                onClick={show(() => {
+                                                                    handleDeleteUser(user.id)
+                                                                })}
+                                                            >
+                                                                <Trash2 />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </ActionConfirmationModal>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="flex items-center justify-center py-8">
+                            Nenhum usuário encontrado.
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            <NewUserModal
+                open={addNewUserModalOpen}
+                onOpenChange={setAddNewUserModalOpen}
+                onClose={() => setAddNewUserModalOpen(false)}
+                onSubmit={handleCreateUser}
+            />
+        </div>
+    )
 }
