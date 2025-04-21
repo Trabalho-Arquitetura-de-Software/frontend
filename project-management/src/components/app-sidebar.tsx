@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, LogOut, PieChart, Plus, Search, Settings, Users } from "lucide-react"
+import { Home, Inbox, LogOut, Plus, Settings, UserCog, Users } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
 import { useState } from "react"
@@ -13,9 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
+
 export function AppSidebar() {
     const [open, setOpen] = useState(false)
-
     const navigate = useNavigate();
     
     const handleLogout = () => {
@@ -38,7 +38,7 @@ export function AppSidebar() {
         },
         {
             title: "Equipes",
-            url: "/team",
+            url: "/teams",
             icon: Users,
         },
         // {
@@ -52,8 +52,13 @@ export function AppSidebar() {
         //     icon: PieChart,
         // },
         {
-            title: "Usuarios",
+            title: "Usuários",
             url: "/users",
+            icon: UserCog,
+        },
+        {
+            title: "Configurações",
+            url: "/settings",
             icon: Settings,
         },
     ];
@@ -78,8 +83,9 @@ export function AppSidebar() {
                         <NewProjectModal/>
                     </Dialog>
 
-
-                    <Button className="w-full bg-primary-dark hover:bg-primary-darker text-white">
+                    <Button 
+                        className="w-full bg-primary-dark hover:bg-primary-darker text-white"
+                    >
                         <Plus size={16} /> Adicionar usuário
                     </Button>
                 </div>
@@ -96,7 +102,6 @@ export function AppSidebar() {
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
-                
                 <div className="absolute bottom-4 left-4 right-4">
                     <Button 
                         variant="outline" 
