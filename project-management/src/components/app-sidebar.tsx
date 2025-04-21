@@ -27,7 +27,7 @@ export function AppSidebar() {
 
     const menuItems = [
         {
-            title: "Dashboard",
+            title: "Home",
             url: "/home",
             icon: Home,
         },
@@ -37,23 +37,23 @@ export function AppSidebar() {
             icon: Inbox,
         },
         {
-            title: "Equipe",
+            title: "Equipes",
             url: "/team",
             icon: Users,
         },
+        // {
+        //     title: "Calendário",
+        //     url: "/calendar",
+        //     icon: Calendar,
+        // },
+        // {
+        //     title: "Relatórios",
+        //     url: "/reports",
+        //     icon: PieChart,
+        // },
         {
-            title: "Calendário",
-            url: "/calendar",
-            icon: Calendar,
-        },
-        {
-            title: "Relatórios",
-            url: "/reports",
-            icon: PieChart,
-        },
-        {
-            title: "Configurações",
-            url: "/settings",
+            title: "Usuarios",
+            url: "/users",
             icon: Settings,
         },
     ];

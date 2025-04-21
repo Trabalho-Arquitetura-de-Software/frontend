@@ -23,21 +23,21 @@ export function Home() {
                 <AppSidebar />
                 <main className="flex-1 p-6 bg-gray-50">
                     <div className="max-w-5xl mx-auto">
-                        <h1 className="text-3xl font-bold mb-6">Projetos</h1>
+                        <h1 className="text-3xl font-bold mb-6">Equipes</h1>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <DashboardCard 
                                 title="Projetos" 
                                 description="Gerencie seus projetos aqui."
                             />
-                            <DashboardCard 
+                            {/* <DashboardCard 
                                 title="Tarefas" 
                                 description="Acompanhe suas tarefas pendentes."
                             />
                             <DashboardCard 
                                 title="Relatórios" 
                                 description="Visualize relatórios e métricas."
-                            />
+                            /> */}
                         </div>
                         
                         <div className="mt-12">
