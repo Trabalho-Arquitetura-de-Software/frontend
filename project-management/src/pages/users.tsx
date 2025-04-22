@@ -14,8 +14,11 @@ import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { PencilIcon, Plus, Trash2 } from 'lucide-react'
 import { CreateUserData, NewUserModal } from "@/components/modal/new-user-modal"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ActionConfirmationModal } from '@/components/modal/action-confirmation-modal'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SidebarProvider } from '@/components/ui/sidebar'
+import { EditUserModal, UpdateUserData, User } from '@/components/modal/edit-user-modal'
 
 // Define o enum de acordo com a API
 export enum UserRole {
@@ -58,11 +61,39 @@ const DELETE_USER = gql`
     }
 `
 
+const UPDATE_USER = gql`
+    mutation UpdateUser($id: ID!, $name: String!, $email: String!, $password: String, $role: UserRole!) {
+        updateUser(id: $id, name: $name, email: $email, password: $password, role: $role) {
+            id
+            name
+            email
+            role
+        }
+    }
+`
+
 export default function Users() {
     const { loading, error, data } = useQuery(GET_USERS)
     const [addNewUserModalOpen, setAddNewUserModalOpen] = useState(false)
+    const [editUserModalOpen, setEditUserModalOpen] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<User | null>(null)
     const [createUser] = useMutation(CREATE_USER);
     const [deleteUser] = useMutation(DELETE_USER);
+    const [updateUser] = useMutation(UPDATE_USER);
+
+    // Ajustar o estilo do elemento root, como feito na Home
+    useEffect(() => {
+        const rootElement = document.getElementById("root");
+        if (rootElement) {
+            rootElement.style.maxWidth = "100%";
+            rootElement.style.padding = "0";
+
+            return () => {
+                rootElement.style.maxWidth = "1280px";
+                rootElement.style.padding = "2rem";
+            };
+        }
+    }, []);
 
     // Manipular o erro de forma segura
     if (error) {
@@ -129,91 +160,149 @@ export default function Users() {
         });
     }
 
+    function handleUpdateUser(userData: UpdateUserData): void {
+        console.log("Updating user with data:", userData);
+
+        // Preparar as variáveis para a mutação
+        const variables: any = {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role
+        };
+
+        // Adicionar senha apenas se ela foi fornecida
+        if (userData.password) {
+            variables.password = userData.password;
+        }
+
+        updateUser({
+            variables,
+            refetchQueries: [{ query: GET_USERS }],
+            onCompleted: (data) => {
+                console.log("User updated successfully:", data);
+                setEditUserModalOpen(false);
+                toast({
+                    title: "Sucesso",
+                    description: "Usuário atualizado com sucesso.",
+                });
+            },
+            onError: (err) => {
+                console.error("Error updating user:", err);
+                toast({
+                    title: "Erro",
+                    description: `Falha ao atualizar usuário: ${err.message}`,
+                    variant: "destructive",
+                });
+            }
+        });
+    }
+
+    function handleOpenEditModal(user: User) {
+        setSelectedUser(user);
+        setEditUserModalOpen(true);
+    }
+
     return (
-        <div className="container mx-auto py-8">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>
-                        <h1 className='text-2xl my-4'>Usuários</h1>
-                        <Button onClick={() => setAddNewUserModalOpen(true)}>
-                            <Plus className="mr-2 h-4 w-4" /> Adicionar Usuário
-                        </Button>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {loading ? (
-                        <div className="flex items-center justify-center py-8">
-                            Carregando usuários...
-                        </div>
-                    ) : error ? (
-                        <div className="flex items-center justify-center py-8 text-red-500">
-                            Erro ao carregar usuários. Por favor, tente novamente.
-                        </div>
-                    ) : data && data.findAllUsers ? (
-                        <Table className="w-full">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[100px]">Nome</TableHead>
-                                    <TableHead className="w-[250px]">Email</TableHead>
-                                    <TableHead className="w-[100px]">Papel</TableHead>
-                                    <TableHead className="w-[80px]"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {data.findAllUsers.map((user: any) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="max-w-[200px]">
-                                            <div className="truncate" title={user.name}>{user.name}</div>
-                                        </TableCell>
-                                        <TableCell className="max-w-[250px]">
-                                            <div className="truncate" title={user.email}>{user.email}</div>
-                                        </TableCell>
-                                        <TableCell>{user.role}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-end space-x-2">
-                                                <Button
-                                                    variant={"outline"}
-                                                >
-                                                    <PencilIcon/>
-                                                </Button>
-                                                <ActionConfirmationModal
-                                                    title={`Deletando ${user.name}`}
-                                                    description={`Tem certeza que deseja deletar ${user.name}?`}
-                                                    confirmText='Deletar'
-                                                    cancelText='Cancelar'
-                                                >
-                                                    {(show) => (
-                                                        <div className="cursor-pointer">
+        <SidebarProvider>
+            <div className="flex h-screen w-full">
+                <AppSidebar />
+                <main className="flex-1 p-6 bg-gray-50">
+                    <div className="max-w-5xl mx-auto">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <CardTitle>
+                                    <h1 className='text-2xl my-4'>Usuários</h1>
+                                </CardTitle>
+                                <Button onClick={() => setAddNewUserModalOpen(true)}>
+                                    <Plus className="mr-2 h-4 w-4" /> Adicionar Usuário
+                                </Button>
+                            </CardHeader>
+                            <CardContent>
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        Carregando usuários...
+                                    </div>
+                                ) : error ? (
+                                    <div className="flex items-center justify-center py-8 text-red-500">
+                                        Erro ao carregar usuários. Por favor, tente novamente.
+                                    </div>
+                                ) : data && data.findAllUsers ? (
+                                    <Table className="w-full">
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-[100px]">Nome</TableHead>
+                                                <TableHead className="w-[250px]">Email</TableHead>
+                                                <TableHead className="w-[100px]">Papel</TableHead>
+                                                <TableHead className="w-[80px]"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {data.findAllUsers.map((user: User) => (
+                                                <TableRow key={user.id}>
+                                                    <TableCell className="max-w-[200px]">
+                                                        <div className="truncate" title={user.name}>{user.name}</div>
+                                                    </TableCell>
+                                                    <TableCell className="max-w-[250px]">
+                                                        <div className="truncate" title={user.email}>{user.email}</div>
+                                                    </TableCell>
+                                                    <TableCell>{user.role}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center justify-end space-x-2">
                                                             <Button
                                                                 variant={"outline"}
-                                                                onClick={show(() => {
-                                                                    handleDeleteUser(user.id)
-                                                                })}
+                                                                onClick={() => handleOpenEditModal(user)}
                                                             >
-                                                                <Trash2 />
+                                                                <PencilIcon />
                                                             </Button>
+                                                            <ActionConfirmationModal
+                                                                title={`Deletando ${user.name}`}
+                                                                description={`Tem certeza que deseja deletar ${user.name}?`}
+                                                                confirmText='Deletar'
+                                                                cancelText='Cancelar'
+                                                            >
+                                                                {(show) => (
+                                                                    <div className="cursor-pointer">
+                                                                        <Button
+                                                                            variant={"outline"}
+                                                                            onClick={show(() => {
+                                                                                handleDeleteUser(user.id)
+                                                                            })}
+                                                                        >
+                                                                            <Trash2 />
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
+                                                            </ActionConfirmationModal>
                                                         </div>
-                                                    )}
-                                                </ActionConfirmationModal>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <div className="flex items-center justify-center py-8">
-                            Nenhum usuário encontrado.
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-            <NewUserModal
-                open={addNewUserModalOpen}
-                onOpenChange={setAddNewUserModalOpen}
-                onClose={() => setAddNewUserModalOpen(false)}
-                onSubmit={handleCreateUser}
-            />
-        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <div className="flex items-center justify-center py-8">
+                                        Nenhum usuário encontrado.
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <NewUserModal
+                            open={addNewUserModalOpen}
+                            onOpenChange={setAddNewUserModalOpen}
+                            onClose={() => setAddNewUserModalOpen(false)}
+                            onSubmit={handleCreateUser}
+                        />
+                        <EditUserModal
+                            open={editUserModalOpen}
+                            user={selectedUser}
+                            onOpenChange={setEditUserModalOpen}
+                            onClose={() => setEditUserModalOpen(false)}
+                            onSubmit={handleUpdateUser}
+                        />
+                    </div>
+                </main>
+            </div>
+        </SidebarProvider>
     )
 }
