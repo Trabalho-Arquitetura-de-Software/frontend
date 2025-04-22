@@ -64,6 +64,7 @@ export function LoginForm() {
 
   // Handle form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    localStorage.removeItem("token");
     await login({
       variables: {
         email: values.email,
