@@ -34,6 +34,16 @@ const GET_PROJECTS = gql`
   }
 `;
 
+// Adicione esta query para buscar todos os grupos
+const GET_GROUPS = gql`
+  query {
+    findAllGroups {
+      id
+      name
+    }
+  }
+`;
+
 // Mutation para salvar um novo projeto
 const SAVE_PROJECT = gql`
   mutation SaveProject(
@@ -60,21 +70,21 @@ const SAVE_PROJECT = gql`
 
 // Definição da interface de Projeto
 interface Project {
+  id: string;
+  name: string;
+  objective: string;
+  status: string;
+  summaryScope: string;
+  targetAudience: string;
+  expectedStartDate: string;
+  group?: {
     id: string;
     name: string;
-    objective: string;
-    status: string;
-    summaryScope: string;
-    targetAudience: string;
-    expectedStartDate: string;
-    group?: {
-        id: string;
-        name: string;
-        coordinator?: {
-            name: string;
-        };
-    } | null;
-  }
+    coordinator?: {
+      name: string;
+    };
+  } | null;
+}
 
 // Componente para mostrar mensagem quando não há projetos
 function EmptyProjectsMessage() {
@@ -108,10 +118,11 @@ function NoSearchResultsMessage({ query, onClearSearch }) {
 // Componente principal de Projetos
 export default function Projects() {
   const { loading, error, data, refetch } = useQuery(GET_PROJECTS);
+  const { data: groupsData } = useQuery(GET_GROUPS);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Adiciona efeito para ajustar o layout da página
   useEffect(() => {
     const rootElement = document.getElementById("root");
@@ -125,7 +136,7 @@ export default function Projects() {
       };
     }
   }, []);
-  
+
   const [saveProject] = useMutation(SAVE_PROJECT, {
     refetchQueries: [{ query: GET_PROJECTS }],
     onCompleted: () => {
@@ -162,19 +173,22 @@ export default function Projects() {
   // Filtrar os projetos de acordo com a busca
   const getFilteredProjects = () => {
     if (!data?.findAllProjects) return [];
-    
+
     if (!searchQuery.trim()) return data.findAllProjects;
-    
+
     const query = searchQuery.toLowerCase();
-    return data.findAllProjects.filter((project: Project) => 
-        project.name.toLowerCase().includes(query) || 
-        project.objective.toLowerCase().includes(query) ||
-        project.targetAudience.toLowerCase().includes(query) ||
-        project.summaryScope.toLowerCase().includes(query) ||
-        project.group?.name.toLowerCase().includes(query) ||
-        project.group?.coordinator?.name.toLowerCase().includes(query)
+    return data.findAllProjects.filter((project: Project) =>
+      project.name.toLowerCase().includes(query) ||
+      project.objective.toLowerCase().includes(query) ||
+      project.targetAudience.toLowerCase().includes(query) ||
+      project.summaryScope.toLowerCase().includes(query) ||
+      project.group?.name.toLowerCase().includes(query) ||
+      project.group?.coordinator?.name.toLowerCase().includes(query)
     );
   };
+
+  // Lista de grupos a ser passada para o ProjectCard
+  const groups = groupsData?.findAllGroups || [];
 
   // Renderização de loading e error fora do return principal
   if (loading) return (
@@ -187,7 +201,7 @@ export default function Projects() {
       </div>
     </SidebarProvider>
   );
-  
+
   if (error) return (
     <SidebarProvider>
       <div className="flex h-screen w-full">
@@ -222,7 +236,7 @@ export default function Projects() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button 
+            <Button
               className="ml-auto"
               onClick={() => setModalOpen(true)}
             >
@@ -240,25 +254,26 @@ export default function Projects() {
                   </p>
                 </div>
               </div>
-              
+
               {data.findAllProjects && data.findAllProjects.length > 0 ? (
                 filteredProjects.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredProjects.map((project: Project) => (
-                      <ProjectCard 
-                        key={project.id} 
-                        project={project} 
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
                         onDelete={handleDeleteProject}
                         onAssign={handleAssignProject}
                         onEdit={handleEditProject}
                         refetch={refetch}
+                        groups={groups}
                       />
                     ))}
                   </div>
                 ) : (
                   <Card>
                     <CardContent>
-                      <NoSearchResultsMessage 
+                      <NoSearchResultsMessage
                         query={searchQuery}
                         onClearSearch={() => setSearchQuery("")}
                       />
@@ -276,7 +291,7 @@ export default function Projects() {
           </main>
         </SidebarInset>
       </div>
-      
+
       {/* Modal para novo projeto */}
       <NewProjectModal
         open={modalOpen}
