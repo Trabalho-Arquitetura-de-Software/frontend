@@ -24,7 +24,7 @@ import { EditUserModal, UpdateUserData, User } from '@/components/modal/edit-use
 export enum UserRole {
     ADMIN = 'ADMIN',
     PROFESSOR = 'PROFESSOR',
-    STUDENT = 'STUDENT'
+    STUDENT = 'STUDENTs'
 }
 
 const GET_USERS = gql`
