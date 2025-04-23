@@ -4,6 +4,8 @@ import { Home } from '../pages/Home';
 import Users from '@/pages/users';
 import Projects from '@/pages/projects';
 import { Myteams } from '@/pages/myTeams';
+import { Teams } from '@/pages/Teams';
+
 
 function AppRoutes() {
   return (
@@ -16,6 +18,7 @@ function AppRoutes() {
         {/* <Route path="/tasks" element={<Tasks />} /> */}
         <Route path="/projects" element={<Projects/>} />
         <Route path="/myTeams" element={<Myteams />} />
+        <Route path="/teams" element={<Teams/>} />
       </Routes>
   );
 }
