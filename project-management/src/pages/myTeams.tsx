@@ -15,6 +15,7 @@ interface Team {
 
 export function Myteams() {
   const [teams, setTeams] = useState<Team[]>([]);
+    const usuario = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const rootElement = document.getElementById("root");
@@ -86,6 +87,7 @@ export function Myteams() {
 
 function DashboardCard({ team }: { team: Team }) {
   const [open, setOpen] = useState(false);
+  const usuario = JSON.parse(localStorage.getItem("user") || "{}"); // Obtém o usuário do localStorage
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
@@ -94,7 +96,7 @@ function DashboardCard({ team }: { team: Team }) {
       <p className={team.project ? "text-gray-600" : "text-red-500"}>
         Projeto: {team.project || "Sem projeto"}
       </p>
-      {!team.project && (
+      {!team.project && usuario.role !== "STUDENT" && (
         <>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

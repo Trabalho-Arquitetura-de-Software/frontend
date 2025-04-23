@@ -12,6 +12,8 @@ import { useUser } from '@/contexts/user-context';
 
 export function AppSidebar() {
     const { user } = useUser();
+    const usuario = JSON.parse(localStorage.getItem("user") || "{}");
+
     const [profileExpanded, setProfileExpanded] = useState(false);
     const [profileModalOpen, setProfileModalOpen] = useState(false);
     const navigate = useNavigate();
@@ -27,34 +29,68 @@ export function AppSidebar() {
         setProfileModalOpen(true);
     };
 
+    // const menuItems = [
+    //     {
+    //         title: "Home",
+    //         url: "/home",
+    //         icon: Home,
+    //     },
+    //     {
+    //         title: "Equipes",
+    //         url: "/teams",
+    //         icon: Users,
+    //     },
+    //     {
+    //         title: "Minhas Equipes",
+    //         url: "/myTeams",
+    //         icon: Users,
+    //     },
+    //     {
+    //         title: "Projetos",
+    //         url: "/projects",
+    //         icon: Inbox,
+    //     },
+    //     {
+    //         title: "Usuários",
+    //         url: "/users",
+    //         icon: UserCog,
+    //     }
+    // ];
     const menuItems = [
         {
             title: "Home",
             url: "/home",
             icon: Home,
+            roles: ["ADMIN", "PROFESSOR","STUDENT"], // Define as roles que podem acessar este item
         },
         {
             title: "Equipes",
             url: "/teams",
             icon: Users,
+            roles: ["ADMIN"],
         },
         {
             title: "Minhas Equipes",
             url: "/myTeams",
             icon: Users,
+            roles: ["ADMIN","PROFESSOR","STUDENT"],
         },
         {
             title: "Projetos",
             url: "/projects",
             icon: Inbox,
+            roles: ["ADMIN", "PROFESSOR","STUDENT"],
         },
         {
             title: "Usuários",
             url: "/users",
             icon: UserCog,
-        }
+            roles: ["ADMIN"], // Apenas administradores podem acessar
+        },
     ];
-
+    const filteredMenuItems = menuItems.filter((item) =>
+        item.roles.includes(usuario.role) // Filtra os itens com base na role do usuário
+    );
     return (
         <>
             <Sidebar>
@@ -71,7 +107,7 @@ export function AppSidebar() {
 
                 <SidebarContent className="bg-gray-50 border-r border-gray-200 h-full">
                     <SidebarMenu className="flex flex-col space-y-2 p-4">
-                        {menuItems.map((item) => (
+                        {filteredMenuItems.map((item) => (
                             <SidebarMenuItem key={item.title}>
                                 <Link to={item.url}>
                                     <SidebarMenuButton tooltip={item.title}>
