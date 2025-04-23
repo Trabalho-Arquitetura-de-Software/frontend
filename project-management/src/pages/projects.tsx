@@ -226,7 +226,7 @@ export default function Projects() {
               Projetos
             </h1>
             <Separator orientation="vertical" className="h-6" />
-            <div className="relative flex-1 max-w">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
                 type="search"
@@ -236,12 +236,7 @@ export default function Projects() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button
-              className="ml-auto"
-              onClick={() => setModalOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Novo Projeto
-            </Button>
+
           </header>
 
           <main className="p-6">
