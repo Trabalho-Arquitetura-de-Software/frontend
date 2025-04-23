@@ -39,6 +39,11 @@ export function AppSidebar() {
             icon: Users,
         },
         {
+            title: "Minhas Equipes",
+            url: "/myTeams",
+            icon: Users,
+        },
+        {
             title: "Projetos",
             url: "/projects",
             icon: Inbox,
@@ -47,7 +52,7 @@ export function AppSidebar() {
             title: "Usuários",
             url: "/users",
             icon: UserCog,
-        },
+        }
     ];
 
     return (
