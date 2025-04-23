@@ -24,7 +24,7 @@ import { EditUserModal, UpdateUserData, User } from '@/components/modal/edit-use
 export enum UserRole {
     ADMIN = 'ADMIN',
     PROFESSOR = 'PROFESSOR',
-    STUDENT = 'STUDENTs'
+    STUDENT = 'STUDENT'
 }
 
 const GET_USERS = gql`
@@ -34,18 +34,32 @@ const GET_USERS = gql`
             email
             name
             role
+            affiliatedSchool
         }
     }
 `
 
 // Mutação corrigida usando o tipo UserRole e selecionando subcampos do retorno
 const CREATE_USER = gql`
-    mutation SaveUser($email: String!, $name: String!, $password: String!, $role: UserRole!) {
-        saveUser(email: $email, name: $name, password: $password, role: $role) {
+    mutation SaveUser(
+      $email: String!, 
+      $name: String!, 
+      $password: String!, 
+      $role: UserRole!,
+      $affiliatedSchool: String
+    ) {
+        saveUser(
+          email: $email, 
+          name: $name, 
+          password: $password, 
+          role: $role,
+          affiliatedSchool: $affiliatedSchool
+        ) {
             id
             name
             email
             role
+            affiliatedSchool
         }
     }
 `
@@ -62,12 +76,27 @@ const DELETE_USER = gql`
 `
 
 const UPDATE_USER = gql`
-    mutation UpdateUser($id: ID!, $name: String!, $email: String!, $password: String, $role: UserRole!) {
-        updateUser(id: $id, name: $name, email: $email, password: $password, role: $role) {
+    mutation UpdateUser(
+      $id: ID!, 
+      $name: String!, 
+      $email: String!, 
+      $password: String, 
+      $role: UserRole!,
+      $affiliatedSchool: String
+    ) {
+        updateUser(
+          id: $id, 
+          name: $name, 
+          email: $email, 
+          password: $password, 
+          role: $role,
+          affiliatedSchool: $affiliatedSchool
+        ) {
             id
             name
             email
             role
+            affiliatedSchool
         }
     }
 `
@@ -112,7 +141,8 @@ export default function Users() {
                 email: userData.email,
                 name: userData.name,
                 password: userData.password,
-                role: userData.role as UserRole // Asseguramos que o role seja tratado como UserRole
+                role: userData.role as UserRole,
+                affiliatedSchool: userData.affiliatedSchool || null // Incluir o novo campo
             },
             refetchQueries: [{ query: GET_USERS }],
             onCompleted: (data) => {
@@ -168,7 +198,8 @@ export default function Users() {
             id: userData.id,
             name: userData.name,
             email: userData.email,
-            role: userData.role
+            role: userData.role,
+            affiliatedSchool: userData.affiliatedSchool || null // Incluir o novo campo
         };
 
         // Adicionar senha apenas se ela foi fornecida
@@ -232,28 +263,45 @@ export default function Users() {
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead className="w-[100px]">Nome</TableHead>
-                                                <TableHead className="w-[250px]">Email</TableHead>
-                                                <TableHead className="w-[100px]">Papel</TableHead>
+                                                <TableHead className="w-[200px]">Email</TableHead>
+                                                <TableHead className="w-[150px]">Escola Afiliada</TableHead>
+                                                <TableHead className="w-[80px]">Papel</TableHead>
                                                 <TableHead className="w-[80px]"></TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {data.findAllUsers.map((user: User) => (
                                                 <TableRow key={user.id}>
-                                                    <TableCell className="max-w-[200px]">
+                                                    <TableCell className="max-w-[100px]">
                                                         <div className="truncate" title={user.name}>{user.name}</div>
                                                     </TableCell>
-                                                    <TableCell className="max-w-[250px]">
+                                                    <TableCell className="max-w-[200px]">
                                                         <div className="truncate" title={user.email}>{user.email}</div>
                                                     </TableCell>
-                                                    <TableCell>{user.role}</TableCell>
+                                                    <TableCell className="max-w-[150px]">
+                                                        <div className="truncate" title={user.affiliatedSchool}>
+                                                            {user.affiliatedSchool || "-"}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="w-full">
+                                                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                                                                    user.role === 'PROFESSOR' ? 'bg-blue-100 text-blue-800' :
+                                                                        'bg-green-100 text-green-800'
+                                                                }`}>
+                                                                {user.role === 'ADMIN' ? 'Admin' :
+                                                                    user.role === 'PROFESSOR' ? 'Professor' : 'Estudante'}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center justify-end space-x-2">
                                                             <Button
                                                                 variant={"outline"}
                                                                 onClick={() => handleOpenEditModal(user)}
+                                                                size="icon"
                                                             >
-                                                                <PencilIcon />
+                                                                <PencilIcon className="h-4 w-4" />
                                                             </Button>
                                                             <ActionConfirmationModal
                                                                 title={`Deletando ${user.name}`}
@@ -268,8 +316,9 @@ export default function Users() {
                                                                             onClick={show(() => {
                                                                                 handleDeleteUser(user.id)
                                                                             })}
+                                                                            size="icon"
                                                                         >
-                                                                            <Trash2 />
+                                                                            <Trash2 className="h-4 w-4" />
                                                                         </Button>
                                                                     </div>
                                                                 )}

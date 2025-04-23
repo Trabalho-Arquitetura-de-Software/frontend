@@ -19,7 +19,7 @@ import {
     SelectValue
 } from "@/components/ui/select"
 import { toast } from '@/hooks/use-toast'
-import { UserRole } from '@/pages/Users'
+import { UserRole } from '@/pages/users'
 import { generatePassword } from '@/utils/password-geneator'
 
 export interface User {
@@ -27,10 +27,16 @@ export interface User {
     name: string;
     email: string;
     role: UserRole;
+    affiliatedSchool?: string;
 }
 
-export interface UpdateUserData extends User {
+export interface UpdateUserData {
+    id: string;
+    name: string;
+    email: string;
     password?: string;
+    role: UserRole;
+    affiliatedSchool?: string;
 }
 
 interface EditUserModalProps {
@@ -47,6 +53,7 @@ export function EditUserModal({ open, user, onOpenChange, onClose, onSubmit }: E
         name: '',
         email: '',
         role: UserRole.STUDENT,
+        affiliatedSchool: '',
     });
     const [newPasswordGenerated, setNewPasswordGenerated] = useState(false);
     const [passwordCopied, setPasswordCopied] = useState(false);
@@ -59,6 +66,7 @@ export function EditUserModal({ open, user, onOpenChange, onClose, onSubmit }: E
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                affiliatedSchool: user.affiliatedSchool || '',
             });
             setNewPasswordGenerated(false);
             setPasswordCopied(false);
@@ -141,6 +149,19 @@ export function EditUserModal({ open, user, onOpenChange, onClose, onSubmit }: E
                             value={formData.email}
                             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                             required
+                        />
+                    </div>
+                    {/* Campo adicionado para Escola Afiliada */}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="affiliatedSchool" className="text-right">
+                            Escola afiliada
+                        </Label>
+                        <Input
+                            id="affiliatedSchool"
+                            placeholder="Ex: Universidade XYZ"
+                            className="col-span-3"
+                            value={formData.affiliatedSchool || ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, affiliatedSchool: e.target.value }))}
                         />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">

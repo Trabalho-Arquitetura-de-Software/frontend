@@ -3,6 +3,7 @@ import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@ap
 import { setContext } from '@apollo/client/link/context'
 import AppRoutes from './Routes/routes'
 import { Toaster } from '@/components/ui/toaster'
+import { UserProvider } from './contexts/user-context'
 
 // Configurar o link HTTP para o GraphQL
 const httpLink = createHttpLink({
@@ -13,7 +14,7 @@ const httpLink = createHttpLink({
 const authLink = setContext((_, { headers }) => {
   // Obter token do armazenamento local
   const token = localStorage.getItem('token');
-  
+
   // Retornar os headers para o contexto
   return {
     headers: {
@@ -40,12 +41,14 @@ const client = new ApolloClient({
 export default function App() {
   return (
     <ApolloProvider client={client}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/*" element={<AppRoutes />} />
-        </Routes>
-      </BrowserRouter>
-      <Toaster />
+      <UserProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/*" element={<AppRoutes />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster />
+      </UserProvider>
     </ApolloProvider>
   )
 }

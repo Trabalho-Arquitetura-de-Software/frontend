@@ -1,7 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import { LoginPage } from '../pages/auth/Login'; 
 import { Home } from '../pages/Home';
-import Users from '@/pages/Users';
+import Users from '@/pages/users';
+import Projects from '@/pages/projects';
 
 function AppRoutes() {
   return (
@@ -11,9 +12,8 @@ function AppRoutes() {
         {/* Adicione outras rotas aqui conforme necessário */}
         <Route path="/home" element={<Home />} />
         <Route path="/users" element={<Users />} />
-        {/* <Route path="/projects" element={<Projects />} /> */}
         {/* <Route path="/tasks" element={<Tasks />} /> */}
-        <Route path="/users" element={<Users />} />
+        <Route path="/projects" element={<Projects/>} />
       </Routes>
   );
 }

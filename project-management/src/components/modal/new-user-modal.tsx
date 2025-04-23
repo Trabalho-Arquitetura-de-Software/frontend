@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/select"
 import { generatePassword } from '@/utils/password-geneator'
 import { toast } from '@/hooks/use-toast'
-import { UserRole } from '@/pages/Users'; // Importe o enum
+import { UserRole } from '@/pages/users'; // Importe o enum
 
 export interface CreateUserData {
   name: string;
   email: string;
   password: string;
   role: UserRole; // Use o enum importado
+  affiliatedSchool?: string; // Adicionado campo de escola afiliada
 }
 
 interface NewUserModalProps {
@@ -43,6 +44,7 @@ export function NewUserModal({ open, onOpenChange, onClose, onSubmit }: NewUserM
     email: '',
     password: generatePassword(), // Gerar senha a cada reset
     role: 'STUDENT' as UserRole,
+    affiliatedSchool: '', // Inicializa o campo de escola afiliada
   });
 
   const [formData, setFormData] = useState<CreateUserData>(createInitialState());
@@ -68,7 +70,7 @@ export function NewUserModal({ open, onOpenChange, onClose, onSubmit }: NewUserM
   const handleCopyPassword = () => {
     navigator.clipboard.writeText(formData.password);
     setPasswordCopied(true);
-    
+
     // Mostrar notificação de sucesso
     toast({
       title: "Senha copiada",
@@ -90,9 +92,9 @@ export function NewUserModal({ open, onOpenChange, onClose, onSubmit }: NewUserM
             <Label htmlFor="name" className="text-right">
               Nome
             </Label>
-            <Input 
-              id="name" 
-              placeholder="Ex: João Silva" 
+            <Input
+              id="name"
+              placeholder="Ex: João Silva"
               className="col-span-3"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -103,10 +105,10 @@ export function NewUserModal({ open, onOpenChange, onClose, onSubmit }: NewUserM
             <Label htmlFor="email" className="text-right">
               Email
             </Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="exemplo@email.com" 
+            <Input
+              id="email"
+              type="email"
+              placeholder="exemplo@email.com"
               className="col-span-3"
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -118,29 +120,42 @@ export function NewUserModal({ open, onOpenChange, onClose, onSubmit }: NewUserM
               Senha
             </Label>
             <div className="col-span-3 flex gap-2">
-              <Input 
-                id="password" 
-                value={formData.password} 
-                readOnly 
+              <Input
+                id="password"
+                value={formData.password}
+                readOnly
                 disabled
-                className="flex-1 cursor-not-allowed opacity-75" 
+                className="flex-1 cursor-not-allowed opacity-75"
               />
               <Button variant="outline" size="icon" type="button" onClick={handleCopyPassword}>
                 {passwordCopied ? (
-                    <Check className="h-4 w-4"/>
+                  <Check className="h-4 w-4" />
                 ) : (
-                    <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 )}
               </Button>
             </div>
+          </div>
+          {/* Novo campo para Escola Afiliada */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="affiliatedSchool" className="text-right">
+              Escola afiliada
+            </Label>
+            <Input
+              id="affiliatedSchool"
+              placeholder="Ex: Universidade XYZ"
+              className="col-span-3"
+              value={formData.affiliatedSchool}
+              onChange={(e) => setFormData(prev => ({ ...prev, affiliatedSchool: e.target.value }))}
+            />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">
               Papel
             </Label>
-            <Select 
+            <Select
               value={formData.role}
-              onValueChange={(value: UserRole) => 
+              onValueChange={(value: UserRole) =>
                 setFormData(prev => ({ ...prev, role: value }))
               }
             >

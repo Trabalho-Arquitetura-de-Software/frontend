@@ -14,18 +14,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
 
-// Define the login mutation
+// Define the login mutation with expanded user data
 const LOGIN_MUTATION = gql`
   mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
       token
+      user {
+        id
+        name
+        email
+        affiliatedSchool
+        role
+      }
     }
   }
 `
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  email: z.string().email({ message: "Por favor, insira um email válido" }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
 })
 
 export function LoginForm() {
@@ -45,15 +52,16 @@ export function LoginForm() {
   // Set up GraphQL mutation
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      localStorage.setItem("token", data.login.token)
+      localStorage.setItem("token", data.login.token);
+      localStorage.setItem("user", JSON.stringify(data.login.user));
 
       toast({
         title: "Login concluído",
-        description: "Login efetuado com sucesso.",
+        description: `Bem-vindo(a), ${data.login.user.name}!`,
       })
       navigate("/home")
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Erro no login",
         description: "Verifique suas credenciais e tente novamente.",
@@ -64,6 +72,7 @@ export function LoginForm() {
 
   // Handle form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    localStorage.removeItem("user");
     localStorage.removeItem("token");
     await login({
       variables: {

@@ -1,28 +1,30 @@
-import { Home, Inbox, LogOut, Plus, Settings, UserCog, Users } from "lucide-react"
+import { Home, Inbox, LogOut, Settings, UserCog, Users, ChevronUp, ChevronDown, UserCircle } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { NewProjectModal } from "./modal/new-project-modal"	
+import { NewProjectModal } from "./modal/new-project-modal"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
 } from "@/components/ui/dialog"
-
+import { EditSelfUserModal } from "./modal/edit-self-user-modal"
+import { useUser } from '@/contexts/user-context';
 
 export function AppSidebar() {
-    const [open, setOpen] = useState(false)
+    const { user } = useUser();
+    const [profileExpanded, setProfileExpanded] = useState(false);
+    const [profileModalOpen, setProfileModalOpen] = useState(false);
     const navigate = useNavigate();
-    
+
     const handleLogout = () => {
-        // Remover o token
         localStorage.removeItem("token");
-        // Redirecionar para login
+        localStorage.removeItem("user");
         navigate("/login");
+    };
+
+    const handleProfileClick = () => {
+        setProfileExpanded(false);
+        setProfileModalOpen(true);
     };
 
     const menuItems = [
@@ -32,87 +34,101 @@ export function AppSidebar() {
             icon: Home,
         },
         {
+            title: "Equipes",
+            url: "/teams",
+            icon: Users,
+        },
+        {
             title: "Projetos",
             url: "/projects",
             icon: Inbox,
         },
         {
-            title: "Equipes",
-            url: "/teams",
-            icon: Users,
-        },
-        // {
-        //     title: "Calendário",
-        //     url: "/calendar",
-        //     icon: Calendar,
-        // },
-        // {
-        //     title: "Relatórios",
-        //     url: "/reports",
-        //     icon: PieChart,
-        // },
-        {
             title: "Usuários",
             url: "/users",
             icon: UserCog,
         },
-        {
-            title: "Configurações",
-            url: "/settings",
-            icon: Settings,
-        },
     ];
 
     return (
-        <Sidebar>
-            <SidebarHeader className="border-b border-gray-200 p-4">
-                <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-primary-dark flex items-center justify-center text-white font-bold">
-                        PM
+        <>
+            <Sidebar>
+                <SidebarHeader className="p-4">
+                    <div className="flex items-center">
+                        <div className="h-8 w-8 rounded-full bg-primary-dark flex items-center justify-center text-white font-bold">
+                            PM
+                        </div>
+                        <div className="ml-2">
+                            <div className="text-sm font-semibold">Project Management</div>
+                        </div>
                     </div>
-                    <span className="ml-2 text-lg font-semibold">Project Managment</span>
-                </div>
-            </SidebarHeader>
-            
-            <SidebarContent className="bg-gray-50 border-r border-gray-200 h-full">
-                <div className="p-4 flex flex-col gap-2">
-                    <Button onClick={() => setOpen(true)} className="w-full bg-primary-dark hover:bg-primary-darker text-white">
-                        <Plus size={16} /> Novo Projeto
-                    </Button>
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <NewProjectModal/>
-                    </Dialog>
+                </SidebarHeader>
 
-                    <Button 
-                        className="w-full bg-primary-dark hover:bg-primary-darker text-white"
-                    >
-                        <Plus size={16} /> Adicionar usuário
-                    </Button>
-                </div>
-                
-                <SidebarMenu>
-                    {menuItems.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                            <Link to={item.url}>
-                                <SidebarMenuButton tooltip={item.title}>
-                                    <item.icon className="size-4" />
-                                    <span>{item.title}</span>
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-                <div className="absolute bottom-4 left-4 right-4">
-                    <Button 
-                        variant="outline" 
-                        className="w-full text-red-500 hover:text-red-700"
-                        onClick={handleLogout}
-                    >
-                        <LogOut size={16} />
-                        <span>Sair</span>
-                    </Button>
-                </div>
-            </SidebarContent>
-        </Sidebar>
-    )
+                <SidebarContent className="bg-gray-50 border-r border-gray-200 h-full">
+                    <SidebarMenu className="flex flex-col space-y-2 p-4">
+                        {menuItems.map((item) => (
+                            <SidebarMenuItem key={item.title}>
+                                <Link to={item.url}>
+                                    <SidebarMenuButton tooltip={item.title}>
+                                        <item.icon className="size-4" />
+                                        <span>{item.title}</span>
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                        ))}
+                    </SidebarMenu>
+
+                    <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200">
+                        <div className="px-4 py-3">
+                            <button
+                                className="w-full flex items-center justify-between bg-white rounded-lg p-3 hover:bg-gray-100 transition-colors"
+                                onClick={() => setProfileExpanded(!profileExpanded)}
+                            >
+                                <div className="flex items-center">
+                                    <div className="h-8 w-8 rounded-full bg-primary-dark flex items-center justify-center text-white font-bold">
+                                        {user.name ? user.name.charAt(0) : "U"}
+                                    </div>
+                                    <div className="ml-2">
+                                        <div className="text-sm font-semibold text-left">{user.name || "Usuário"}</div>
+                                        <div className="text-xs text-gray-500 text-left">{user.role || "Membro"}</div>
+                                    </div>
+                                </div>
+                                {profileExpanded ? (
+                                    <ChevronDown size={16} className="text-gray-500" />
+                                ) : (
+                                    <ChevronUp size={16} className="text-gray-500" />
+                                )}
+                            </button>
+
+                            {profileExpanded && (
+                                <div className="mt-2 space-y-2 p-1">
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start text-gray-700"
+                                        onClick={handleProfileClick}
+                                    >
+                                        <UserCircle size={16} className="mr-2" />
+                                        <span>Meu Perfil</span>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        onClick={handleLogout}
+                                    >
+                                        <LogOut size={16} className="mr-2" />
+                                        <span>Sair</span>
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </SidebarContent>
+            </Sidebar>
+
+            <EditSelfUserModal
+                open={profileModalOpen}
+                onOpenChange={setProfileModalOpen}
+            />
+        </>
+    );
 }
