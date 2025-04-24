@@ -27,7 +27,7 @@ export interface CreateUserData {
   email: string;
   password: string;
   role: UserRole; // Use o enum importado
-  affiliatedSchool?: string; // Adicionado campo de escola afiliada
+  affiliatedSchool: string; // Adicionado campo de escola afiliada
 }
 
 interface NewUserModalProps {
