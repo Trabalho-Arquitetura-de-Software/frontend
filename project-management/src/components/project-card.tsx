@@ -95,6 +95,7 @@ interface ProjectCardProps {
     groups: Array<{ id: string; name: string }>;
 }
 
+// Código do ProjectCard sem alterações para posicionamento absoluto
 export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, groups }: ProjectCardProps) {
     // Estado para controlar o modo de edição
     const [isEditing, setIsEditing] = useState(false);
@@ -267,7 +268,7 @@ export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, grou
     };
 
     return (
-        <Card className="shadow-sm hover:shadow-lg transition-shadow">
+        <Card className="shadow-sm hover:shadow-lg transition-shadow relative">
             <CardHeader className="pt-3 pb-2">
                 {/* Layout ajustado para modo de edição */}
                 {isEditing ? (
@@ -317,7 +318,7 @@ export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, grou
                     </div>
                 )}
             </CardHeader>
-            <CardContent className="space-y-3 pt-2">
+            <CardContent className="space-y-3 pt-2 pb-14"> {/* Adicionado padding-bottom para dar espaço ao botão */}
                 {isEditing ? (
                     <>
                         <div>
@@ -382,9 +383,8 @@ export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, grou
                             />
                         </div>
 
-
-                        {/* Botões de salvar e cancelar */}
-                        <div className="mt-4 flex justify-end space-x-2">
+                        {/* Botões de salvar e cancelar fixados no canto inferior direito */}
+                        <div className="absolute bottom-4 right-4 flex space-x-2">
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -429,8 +429,8 @@ export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, grou
                             <span className="font-medium">Data de Início:</span> {formatDate(project.expectedStartDate)}
                         </p>
 
-                        {/* Botão de editar sempre visível */}
-                        <div className="mt-4 flex justify-end">
+                        {/* Botão de editar fixado no canto inferior direito */}
+                        <div className="absolute bottom-4 right-4">
                             <Button
                                 size="sm"
                                 variant="outline"
