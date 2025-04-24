@@ -1,26 +1,44 @@
+import { useQuery, useMutation, gql } from '@apollo/client';
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Search } from "lucide-react";
+import { Plus, ClipboardX, Search, FileText } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { useMutation, gql } from "@apollo/client";
+import { Card, CardContent } from '@/components/ui/card';
 import { NewProjectModal } from "@/components/modal/new-project-modal";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { ProjectDetailsModal } from "@/components/modal/project-details-modal";
+import { ProjectCard } from "@/components/project-card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
-interface Team {
-  id: string;
-  name: string;
-  professor: string;
-  equipe: string | null;
-}
-
-// Mutation para salvar um novo projeto - corrigindo a sintaxe
+// Query para buscar meus projetos
 const GET_MY_PROJECTS = gql`
-  mutation GetMyProjects(
+  query MyProjects($requesterId: ID!) {
+    findAllProjectsByRequester(requester_id: $requesterId) {
+      expectedStartDate
+      id
+      name
+      objective
+      status
+      summaryScope
+      targetAudience
+      group {
+        id
+        name
+        coordinator {
+          name
+        }
+      }
+      requester {
+        name
+      }
+    }
+  }
+`;
+
+// Mutation para salvar um novo projeto
+const SAVE_PROJECT = gql`
+  mutation SaveProject(
     $name: String!,
     $objective: String!,
     $requester: ID!,
@@ -42,12 +60,15 @@ const GET_MY_PROJECTS = gql`
   }
 `;
 
-// Using default export here - may be needed for routing
 export default function MyProjects() {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const usuario = JSON.parse(localStorage.getItem("user") || "{}");
   const [modalOpen, setModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  
+  const { loading, error, data, refetch } = useQuery(GET_MY_PROJECTS, {
+    variables: { requesterId: user.id },
+    skip: !user.id
+  });
 
   useEffect(() => {
     const rootElement = document.getElementById("root");
@@ -62,53 +83,62 @@ export default function MyProjects() {
     }
   }, []);
 
-  useEffect(() => {
-    const mockTeams: Team[] = [
-      {
-        id: "1",
-        name: "Projeto A",
-        professor: "Ana Silva",
-        equipe: "Lucas, Roberto",
-      },
-      {
-        id: "2",
-        name: "Equipe Beta",
-        professor: "Maria Oliveira",
-        equipe: "Guilherme",
-      },
-      {
-        id: "3",
-        name: "Equipe Gama",
-        professor: "Carlos Souza",
-        equipe: "denilson",
-      },
-    ];
-    setTeams(mockTeams);
-  }, []);
-  
-//   const [saveProject] = useMutation(SAVE_PROJECT, {
-//     onCompleted: () => {
-//       toast({ title: "Projeto solicitado com sucesso!" });
-//       setModalOpen(false);
-//     },
-//     onError: (error) => {
-//       toast({ title: "Erro ao solicitar projeto", description: error.message });
-//     }
-//   });
+  const [saveProject] = useMutation(SAVE_PROJECT, {
+    refetchQueries: [{ query: GET_MY_PROJECTS, variables: { requesterId: user.id } }],
+    onCompleted: () => {
+      toast({ title: "Projeto solicitado com sucesso!" });
+      setModalOpen(false);
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao solicitar projeto", description: error.message });
+    }
+  });
 
   const handleNewProjectSubmit = (formData) => {
-    console.log("Novo projeto:", formData);
-    // saveProject({ variables: formData });
+    formData.requester = user.id;
+    saveProject({ variables: formData });
   };
   
-  // Filtrar equipes com base na busca
-  const filteredTeams = searchQuery.trim() 
-    ? teams.filter(team => 
-        team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        team.professor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (team.project && team.project.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : teams;
+  // Função para filtrar projetos baseada na busca
+  const getFilteredProjects = () => {
+    if (!data?.findAllProjectsByRequester) return [];
+    
+    if (!searchQuery.trim()) return data.findAllProjectsByRequester;
+    
+    const query = searchQuery.toLowerCase();
+    return data.findAllProjectsByRequester.filter((project) => 
+      project.name.toLowerCase().includes(query) || 
+      project.objective.toLowerCase().includes(query) ||
+      project.targetAudience.toLowerCase().includes(query) ||
+      project.summaryScope.toLowerCase().includes(query) ||
+      project.group?.name.toLowerCase().includes(query)
+    );
+  };
+
+  // Estados de loading e error
+  if (loading) return (
+    <SidebarProvider>
+      <div className="flex h-screen w-full">
+        <AppSidebar />
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <p className="text-gray-500">Carregando seus projetos...</p>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+  
+  if (error) return (
+    <SidebarProvider>
+      <div className="flex h-screen w-full">
+        <AppSidebar />
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <p className="text-red-500">Erro ao carregar projetos: {error.message}</p>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+
+  const filteredProjects = getFilteredProjects();
 
   return (
     <SidebarProvider>
@@ -117,8 +147,8 @@ export default function MyProjects() {
         <SidebarInset className="bg-gray-50">
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6">
             <h1 className="text-xl font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5 text-gray-500" />
-              Meus projetos
+              <FileText className="h-5 w-5 text-gray-500" />
+              Meus Projetos
             </h1>
             <Separator orientation="vertical" className="h-6" />
             <div className="relative flex-1 max-w-md">
@@ -140,25 +170,46 @@ export default function MyProjects() {
           </header>
 
           <main className="p-6">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-medium text-gray-800">Projetos</h2>
+                  <h2 className="text-lg font-medium text-gray-800">Meus Projetos</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    {filteredTeams.length} {filteredTeams.length === 1 ? "projeto encontrado" : "projetos encontrados"}
+                    {filteredProjects.length} {filteredProjects.length === 1 ? "projeto encontrado" : "projetos encontrados"}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTeams.length > 0 ? (
-                  filteredTeams.map((team) => (
-                    <DashboardCard key={team.id} team={team} />
-                  ))
+              {data?.findAllProjectsByRequester && data.findAllProjectsByRequester.length > 0 ? (
+                filteredProjects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredProjects.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        refetch={refetch}
+                        groups={[]} // Passando array vazio já que não vamos editar
+                        readonly={true} // Esta propriedade desativa a edição
+                      />
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-gray-600 col-span-full">Nenhum projeto encontrada.</p>
-                )}
-              </div>
+                  <Card>
+                    <CardContent>
+                      <NoSearchResultsMessage
+                        query={searchQuery}
+                        onClearSearch={() => setSearchQuery("")}
+                      />
+                    </CardContent>
+                  </Card>
+                )
+              ) : (
+                <Card>
+                  <CardContent>
+                    <EmptyProjectsMessage />
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </main>
         </SidebarInset>
@@ -174,39 +225,30 @@ export default function MyProjects() {
   );
 }
 
-// Also export as named export for flexibility
-
-function DashboardCard({ team }: { team: Team }) {
-  const [open, setOpen] = useState(false);
-  const usuario = JSON.parse(localStorage.getItem("user") || "{}");
-
+// Componentes de mensagens EmptyProjectsMessage e NoSearchResultsMessage
+function EmptyProjectsMessage() {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-      <h2 className="text-xl font-semibold mb-2 text-primary-dark">{team.name}</h2>
-      <p className="text-gray-600 mb-2">Professor: {team.professor}</p>
-      <p className={team.equipe ? "text-gray-600" : "text-red-500"}>
-        Equipe: {team.equipe || "Sem projeto"}
+    <div className="flex flex-col items-center justify-center py-12 px-4">
+      <ClipboardX className="h-16 w-16 text-gray-400 mb-4" />
+      <h3 className="text-xl font-medium text-gray-900 mb-2">Você ainda não tem projetos</h3>
+      <p className="text-gray-500 text-center mb-6">
+        Clique no botão "Solicitar Projeto" acima para criar seu primeiro projeto.
       </p>
-      {!team.equipe && usuario.role !== "STUDENT" && (
-        <>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="mt-4" variant="secondary" size="sm">
-                Associar Projeto
-              </Button>
-            </DialogTrigger>          </Dialog>
-        </>
-      )}
-      {team.equipe && (
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="mt-4" variant="default" size="sm">
-              Ver detalhes
-            </Button>
-          </DialogTrigger>
-          <ProjectDetailsModal team={team} />
-        </Dialog>
-      )}
+    </div>
+  );
+}
+
+function NoSearchResultsMessage({ query, onClearSearch }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      <FileText className="h-12 w-12 text-gray-300 mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 mb-1">Nenhum projeto encontrado</h3>
+      <p className="text-gray-500 max-w-md mb-6">
+        Não encontramos nenhum projeto com o termo "{query}".
+      </p>
+      <Button variant="outline" onClick={onClearSearch}>
+        Limpar pesquisa
+      </Button>
     </div>
   );
 }
