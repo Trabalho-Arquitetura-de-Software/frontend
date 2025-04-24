@@ -37,7 +37,16 @@ interface ProjectDetailsModalProps {
   onSubmit?: (projectName: string) => void;
 }
 
-export function SelectProjectModal({ team, onSubmit }: ProjectDetailsModalProps) {
+export function SelectProjectModal() {
+  const usuario = JSON.parse(localStorage.getItem("user") || "{}");
+  const [formData, setFormData] = useState({
+    name: "",
+    objective: "",
+    summaryScope: "",
+    targetAudience: "",
+    expectedStartDate: "",
+    requester: usuario.id
+  });
     const [open, setOpen] = React.useState(false)
     const [value, setValue] = React.useState("")
 
@@ -60,6 +69,33 @@ export function SelectProjectModal({ team, onSubmit }: ProjectDetailsModalProps)
     setIsDropdownOpen(false); // Fecha o dropdown
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Dados do projeto:", formData);
+    try {
+      const response = await fetch("https://sua-api.com/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+      console.log("Projeto salvo com sucesso:", result);
+    } catch (error) {
+      console.error("Erro ao salvar projeto:", error);
+    }
+  };
+
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
@@ -69,34 +105,42 @@ export function SelectProjectModal({ team, onSubmit }: ProjectDetailsModalProps)
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="project-name" className="text-right">
-            Projeto
-          </Label>
-          <div className="relative col-span-3">
-            <input
-              id="project-name"
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)} // Atualiza o valor do input
-              onFocus={() => setIsDropdownOpen(true)} // Abre o dropdown ao focar no input
-              placeholder="Digite para buscar..."
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-            />
-            {isDropdownOpen && filteredFrameworks.length > 0 && (
-              <ul className="absolute z-10 bg-white border border-gray-300 rounded-md mt-1 w-full max-h-40 overflow-y-auto">
-                {filteredFrameworks.map((framework) => (
-                  <li
-                    key={framework.value}
-                    onClick={() => handleSelect(framework.label)} // Seleciona o item
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                  >
-                    {framework.label}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        <div className="items-center gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4 bg-white rounded shadow">
+      <div>
+        <label className="block font-semibold">Nome do projeto</label>
+        <input type="text" name="name" value={formData.name} onChange={handleChange} className="border p-2 w-full" />
+      </div>
+
+      <div>
+        <label className="block font-semibold">Objetivo</label>
+        <textarea name="objective" value={formData.objective} onChange={handleChange} className="border p-2 w-full" />
+      </div>
+
+      <div>
+        <label className="block font-semibold">Resumo do escopo</label>
+        <input type="text" name="summaryScope" value={formData.summaryScope} onChange={handleChange} className="border p-2 w-full" />
+      </div>
+
+      <div>
+        <label className="block font-semibold">Público-alvo</label>
+        <input type="text" name="targetAudience" value={formData.targetAudience} onChange={handleChange} className="border p-2 w-full" />
+      </div>
+
+      <div>
+        <label className="block font-semibold">Data de início esperada</label>
+        <input type="date" name="expectedStartDate" value={formData.expectedStartDate} onChange={handleChange} className="border p-2 w-full" />
+      </div>
+
+      {/* <div>
+        <label className="block font-semibold">Solicitante (ID)</label>
+        <input type="text" name="requester" value={formData.requester} onChange={handleChange} className="border p-2 w-full" />
+      </div> */}
+
+      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Salvar Projeto
+      </button>
+    </form>
         </div>
       </div>
       <DialogFooter>

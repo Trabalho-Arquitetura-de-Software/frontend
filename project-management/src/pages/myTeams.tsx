@@ -53,6 +53,7 @@ export function Myteams() {
     ];
     setTeams(mockTeams);
   }, []);
+  const [open, setOpen] = useState(false);
 
   return (
     <SidebarProvider>
@@ -60,8 +61,21 @@ export function Myteams() {
         <AppSidebar />
         <main className="flex-1 p-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Minhas Equipes</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Minhas Equipes</h1>
+            <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              {/* <Button className="mt-4 px-4 py-2 bg-primary-dark hover:bg-primary-darker text-white rounded-md text-sm">
+                Solicitar Projeto
+              </Button> */}
+                            <button className="bg-primary-dark text-white font-semibold px-4 py-2 rounded hover:bg-primary-darker transition">
+                Solicitar projeto
+              </button>
+            </DialogTrigger>
+            <SelectProjectModal/>
+          </Dialog>
 
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {teams.length > 0 ? (
                 teams.map((team) => (
@@ -100,9 +114,9 @@ function DashboardCard({ team }: { team: Team }) {
         <>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="mt-4 px-4 py-2 bg-primary-dark hover:bg-primary-darker text-white rounded-md text-sm">
+              {/* <Button className="mt-4 px-4 py-2 bg-primary-dark hover:bg-primary-darker text-white rounded-md text-sm">
                 Solicitar Projeto
-              </Button>
+              </Button> */}
             </DialogTrigger>
             <SelectProjectModal team={team} />
           </Dialog>
