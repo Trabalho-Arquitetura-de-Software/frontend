@@ -31,6 +31,8 @@ interface Team {
   professor: string;
   project: string | null;
 }
+import { useMutation, gql } from "@apollo/client"
+import { toast } from "@/hooks/use-toast";
 
 interface ProjectDetailsModalProps {
   team: Team;
@@ -52,6 +54,14 @@ export function SelectProjectModal() {
 
   const [inputValue, setInputValue] = useState(""); // Estado para o valor do input
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Estado para controlar o dropdown
+
+const NEW_PROJECT_MUTATION = gql`
+  mutation SaveProject($name: String!, $objective: String!, $summaryScope: String!, $targetAudience: String!, $expectedStartDate: String!, $requester: string!) {
+    saveProject(name: $name, objective: $objective, summaryScope: $summaryScope, targetAudience: $targetAudience, expectedStartDate: $expectedStartDate, requester: $requester) {
+      
+    }
+  }
+`
 
   const frameworks = [
     { value: "next.js", label: "Next.js" },
@@ -77,19 +87,50 @@ export function SelectProjectModal() {
     }));
   };
 
+  
+
+  const formatDateForBackend = (dateString: string): string => {
+    // Verifica se já está no formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString; // Retorna a data como está se já estiver no formato correto
+    }
+    
+    try {
+      const date = new Date(dateString);
+      // Formata para YYYY-MM-DD
+      return date.toISOString().split('T')[0];
+    } catch (e) {
+      console.error("Erro ao formatar data:", e);
+      // Retorna a data atual se houver erro
+      return new Date().toISOString().split('T')[0];
+    }
+  };
+
+  const formattedExpectedStartDate = formatDateForBackend(formData.expectedStartDate);
+
+
+
   const handleSubmit = async (e) => {
+    formData.expectedStartDate = formattedExpectedStartDate
     e.preventDefault();
     console.log("Dados do projeto:", formData);
     try {
-      const response = await fetch("https://sua-api.com/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
+      useMutation(NEW_PROJECT_MUTATION, {
+        onCompleted: () => {
+            toast({
+                title: "Projeto atualizado",
+                description: "O projeto foi atualizado com sucesso."
+            });
 
-      const result = await response.json();
+        },
+        onError: (error) => {
+            toast({
+                title: "Erro ao atualizar projeto",
+                description: error.message,
+                variant: "destructive"
+            });
+        }
+    });
       console.log("Projeto salvo com sucesso:", result);
     } catch (error) {
       console.error("Erro ao salvar projeto:", error);

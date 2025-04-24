@@ -3,8 +3,9 @@ import { LoginPage } from '../pages/auth/Login';
 import { Home } from '../pages/Home';
 import Users from '@/pages/users';
 import Projects from '@/pages/projects';
-import { Myteams } from '@/pages/myTeams';
+import  Myteams  from '@/pages/myTeams';
 import { Teams } from '@/pages/Teams';
+import MyProjects from '@/pages/myProjects';
 
 
 function AppRoutes() {
@@ -19,6 +20,7 @@ function AppRoutes() {
         <Route path="/projects" element={<Projects/>} />
         <Route path="/myTeams" element={<Myteams />} />
         <Route path="/teams" element={<Teams/>} />
+        <Route path="/myProjects" element={<MyProjects />} />
       </Routes>
   );
 }

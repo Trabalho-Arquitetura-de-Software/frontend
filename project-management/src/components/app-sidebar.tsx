@@ -54,6 +54,12 @@ export function AppSidebar() {
             icon: UserCog,
             roles: ["ADMIN"],
         },
+        {
+            title: "Meus Projetos",
+            url: "/MyProjects",
+            icon: UserCog,
+            roles: ["PROFESSOR"],
+        }
     ];
     const filteredMenuItems = menuItems.filter((item) =>
         item.roles.includes(usuario.role) // Filtra os itens com base na role do usuário
