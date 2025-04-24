@@ -46,7 +46,7 @@ const CREATE_USER = gql`
       $name: String!, 
       $password: String!, 
       $role: UserRole!,
-      $affiliatedSchool: String
+      $affiliatedSchool: String!
     ) {
         saveUser(
           email: $email, 
@@ -82,7 +82,7 @@ const UPDATE_USER = gql`
       $email: String!, 
       $password: String, 
       $role: UserRole!,
-      $affiliatedSchool: String
+      $affiliatedSchool: String!
     ) {
         updateUser(
           id: $id, 
@@ -142,7 +142,7 @@ export default function Users() {
                 name: userData.name,
                 password: userData.password,
                 role: userData.role as UserRole,
-                affiliatedSchool: userData.affiliatedSchool || null // Incluir o novo campo
+                affiliatedSchool: userData.affiliatedSchool
             },
             refetchQueries: [{ query: GET_USERS }],
             onCompleted: (data) => {
@@ -199,7 +199,7 @@ export default function Users() {
             name: userData.name,
             email: userData.email,
             role: userData.role,
-            affiliatedSchool: userData.affiliatedSchool || null // Incluir o novo campo
+            affiliatedSchool: userData.affiliatedSchool // Incluir o novo campo
         };
 
         // Adicionar senha apenas se ela foi fornecida

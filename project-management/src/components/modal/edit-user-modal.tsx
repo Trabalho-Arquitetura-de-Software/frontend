@@ -27,7 +27,7 @@ export interface User {
     name: string;
     email: string;
     role: UserRole;
-    affiliatedSchool?: string;
+    affiliatedSchool: string;
 }
 
 export interface UpdateUserData {
@@ -36,7 +36,7 @@ export interface UpdateUserData {
     email: string;
     password?: string;
     role: UserRole;
-    affiliatedSchool?: string;
+    affiliatedSchool: string;
 }
 
 interface EditUserModalProps {
