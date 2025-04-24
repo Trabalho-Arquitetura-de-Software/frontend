@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 // Define the login mutation with expanded user data
 const LOGIN_MUTATION = gql`
@@ -39,7 +40,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const { toast } = useToast()
-
+  const { user, updateUser } = useUser();
+  
   // Initialize form with react-hook-form and zod validation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,18 +54,35 @@ export function LoginForm() {
   // Set up GraphQL mutation
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
+      
+      const userData = {
+        id: data.login.user.id,
+        name: data.login.user.name,
+        email: data.login.user.email,
+        affiliatedSchool: data.login.user.affiliatedSchool,
+        role: data.login.user.role
+      };
+      
       localStorage.setItem("token", data.login.token);
-      localStorage.setItem("user", JSON.stringify(data.login.user));
-
+      localStorage.setItem("user", JSON.stringify(userData));
+      
       toast({
         title: "Login concluído",
-        description: `Bem-vindo(a), ${data.login.user.name}!`,
+        description: `Bem-vindo(a), ${userData.name}!`,
       })
+      updateUser({
+        name: data.login.user.name,
+        email: data.login.user.email,
+        role: data.login.user.role,
+        affiliatedSchool: data.login.user.affiliatedSchool,
+        id: data.login.user.id,
+      });
       if (data.login.user.role === "ADMIN") {
         navigate("/teams")
       }else{
         navigate("/myTeams")
       }
+      
     },
     onError: (error) => {
       toast({
