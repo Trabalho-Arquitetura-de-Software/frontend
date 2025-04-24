@@ -9,6 +9,28 @@ import { Input } from "@/components/ui/input";
 import { NewProjectModal } from "@/components/modal/new-project-modal";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ProjectDetailsModal } from "@/components/modal/project-details-modal";
+import { gql } from '@apollo/client';
+
+const GET_MY_TEAMS = gql`
+  query {
+    findAllProjects {
+        id
+        name
+        objective
+        status
+        summaryScope
+        targetAudience
+        expectedStartDate
+        group {
+            id
+            name
+            coordinator {
+                    name
+            }
+        }
+    }
+  }
+`;
 
 interface Team {
   id: string;
