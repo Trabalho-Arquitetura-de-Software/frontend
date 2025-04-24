@@ -29,39 +29,12 @@ export function AppSidebar() {
         setProfileModalOpen(true);
     };
 
-    // const menuItems = [
-    //     {
-    //         title: "Home",
-    //         url: "/home",
-    //         icon: Home,
-    //     },
-    //     {
-    //         title: "Equipes",
-    //         url: "/teams",
-    //         icon: Users,
-    //     },
-    //     {
-    //         title: "Minhas Equipes",
-    //         url: "/myTeams",
-    //         icon: Users,
-    //     },
-    //     {
-    //         title: "Projetos",
-    //         url: "/projects",
-    //         icon: Inbox,
-    //     },
-    //     {
-    //         title: "Usuários",
-    //         url: "/users",
-    //         icon: UserCog,
-    //     }
-    // ];
     const menuItems = [
         {
-            title: "Home",
-            url: "/home",
-            icon: Home,
-            roles: ["ADMIN", "PROFESSOR","STUDENT"], // Define as roles que podem acessar este item
+            title: "Minhas Equipes",
+            url: "/myTeams",
+            icon: Users,
+            roles: ["PROFESSOR","STUDENT"],
         },
         {
             title: "Equipes",
@@ -70,22 +43,16 @@ export function AppSidebar() {
             roles: ["ADMIN"],
         },
         {
-            title: "Minhas Equipes",
-            url: "/myTeams",
-            icon: Users,
-            roles: ["ADMIN","PROFESSOR","STUDENT"],
-        },
-        {
             title: "Projetos",
             url: "/projects",
             icon: Inbox,
-            roles: ["ADMIN", "PROFESSOR","STUDENT"],
+            roles: ["ADMIN"],
         },
         {
             title: "Usuários",
             url: "/users",
             icon: UserCog,
-            roles: ["ADMIN"], // Apenas administradores podem acessar
+            roles: ["ADMIN"],
         },
     ];
     const filteredMenuItems = menuItems.filter((item) =>
@@ -96,11 +63,8 @@ export function AppSidebar() {
             <Sidebar>
                 <SidebarHeader className="p-4">
                     <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-primary-dark flex items-center justify-center text-white font-bold">
-                            PM
-                        </div>
                         <div className="ml-2">
-                            <div className="text-sm font-semibold">Project Management</div>
+                            <div className="text-lg font-semibold">Project Management</div>
                         </div>
                     </div>
                 </SidebarHeader>

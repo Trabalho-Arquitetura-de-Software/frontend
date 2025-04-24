@@ -59,7 +59,11 @@ export function LoginForm() {
         title: "Login concluído",
         description: `Bem-vindo(a), ${data.login.user.name}!`,
       })
-      navigate("/home")
+      if (data.login.user.role === "ADMIN") {
+        navigate("/teams")
+      }else{
+        navigate("/myTeams")
+      }
     },
     onError: (error) => {
       toast({
