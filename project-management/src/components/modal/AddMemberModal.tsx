@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { gql, useQuery, useMutation } from "@apollo/client"
+import { gql, useMutation, useQuery } from "@apollo/client"
 import AsyncSelect from "react-select/async"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 // Query para buscar estudantes
 const FIND_ALL_STUDENTS = gql`
   query FindAllStudents {
-    findAllGroups {
-      students {
-        email
-      }
+    findAllUsers {
+      id
+      name
+      email
     }
   }
 `
@@ -31,10 +31,8 @@ const GROUP_ADD_STUDENT = gql`
 
 interface Student {
   email: string
-}
-
-interface Group {
-  students: Student[]
+  name: string
+  id: string
 }
 
 interface AddMemberModalProps {
@@ -47,25 +45,24 @@ interface AddMemberModalProps {
 export function AddMemberModal({ open, onClose, groupId, refetch }: AddMemberModalProps) {
   const [selectedOption, setSelectedOption] = useState<{ label: string; value: string } | null>(null)
   const [groupAddStudent, { loading }] = useMutation(GROUP_ADD_STUDENT)
-  const { data: studentData, loading: loadingStudents } = useQuery<{ findAllGroups: Group[] }>(FIND_ALL_STUDENTS)
 
-  // Carrega opções únicas e filtradas por e-mail
+  // Query de estudantes
+  const { data: studentData, loading: loadingStudents } = useQuery<{ findAllUsers: Student[] }>(FIND_ALL_STUDENTS)
+
+  // Carrega as opções de e-mails filtrados
   const loadOptions = async (inputValue: string) => {
     if (!studentData) return []
 
-    // Tipagem explícita no resultado do flatMap
-    const allStudents: Student[] = studentData.findAllGroups.flatMap((group) => group.students)
+    // Filtra os estudantes pelo e-mail
+    const students = studentData.findAllUsers.filter(student =>
+      student.email.toLowerCase().includes(inputValue.toLowerCase())
+    )
 
-    // Remover duplicados por email
-    const uniqueEmails = Array.from(new Set(allStudents.map((s) => s.email)))
-    const uniqueStudents: Student[] = uniqueEmails.map((email) => ({ email }))
-
-    return uniqueStudents
-      .filter((student) => student.email.toLowerCase().includes(inputValue.toLowerCase()))
-      .map((student) => ({
-        label: student.email,
-        value: student.email,
-      }))
+    // Mapeia para a estrutura esperada pelo react-select
+    return students.map((student) => ({
+      label: student.email,
+      value: student.email,
+    }))
   }
 
   const handleSelectChange = (option: { label: string; value: string } | null) => {

@@ -48,7 +48,8 @@ interface TeamCardProps {
   setTeams: React.Dispatch<React.SetStateAction<Team[]>>;
   refetch: () => void;
   onOpenAddMemberModal?: (groupId: string) => void;
-  onOpenAssignProjectModal?: (groupId: string) => void; // ✅ nova prop
+  onOpenAssignProjectModal?: (groupId: string) => void;
+  readonly?: boolean; // ✅ Nova propriedade para controle de edição
 }
 
 export function TeamCard({
@@ -56,7 +57,8 @@ export function TeamCard({
   setTeams,
   refetch,
   onOpenAddMemberModal,
-  onOpenAssignProjectModal, // ✅
+  onOpenAssignProjectModal,
+  readonly = false, // ✅ Valor padrão como false
 }: TeamCardProps) {
   const [membersOpen, setMembersOpen] = useState(false);
   const [updateGroup] = useMutation(UPDATE_GROUP_AVAILABILITY);
@@ -98,6 +100,7 @@ export function TeamCard({
   });
 
   const handleToggleAvailability = () => {
+    if (readonly) return; // ✅ Impede ações no modo readonly
     updateGroup({
       variables: {
         id: team.id,
@@ -117,6 +120,7 @@ export function TeamCard({
   };
 
   const handleRemoveStudent = (studentId: string, studentName: string) => {
+    if (readonly) return; // ✅ Impede ações no modo readonly
     toast({
       title: "Removendo estudante...",
       description: `Removendo ${studentName} da equipe ${team.name}`,
@@ -170,29 +174,31 @@ export function TeamCard({
         </CardContent>
       </div>
 
-      <div>
-        <Separator />
-        <CardFooter className="pt-3 pb-3 flex gap-2">
-          {team.availableForProjects && (
+      {!readonly && ( // ✅ Exibe os botões de controle apenas se não for readonly
+        <div>
+          <Separator />
+          <CardFooter className="pt-3 pb-3 flex gap-2">
+            {team.availableForProjects && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => onOpenAssignProjectModal?.(team.id)} // ✅ funcional
+              >
+                Atribuir projeto
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               className="w-full"
-              onClick={() => onOpenAssignProjectModal?.(team.id)} // ✅ funcional
+              onClick={handleToggleAvailability}
             >
-              Atribuir projeto
+              {team.availableForProjects ? "Desativar equipe" : "Ativar equipe"}
             </Button>
-          )}
-          <Button
-            variant="default"
-            size="sm"
-            className="w-full"
-            onClick={handleToggleAvailability}
-          >
-            {team.availableForProjects ? "Desativar equipe" : "Ativar equipe"}
-          </Button>
-        </CardFooter>
-      </div>
+          </CardFooter>
+        </div>
+      )}
 
       <Dialog open={membersOpen} onOpenChange={setMembersOpen}>
         <DialogContent>
@@ -207,47 +213,51 @@ export function TeamCard({
                 {team.memberInfos?.map((student) => (
                   <li key={student.id} className="flex items-center justify-between border-b pb-2 last:border-0">
                     <span className="text-sm text-gray-700">{student.name}</span>
-                    <ActionConfirmationModal
-                      title={`Remover ${student.name}`}
-                      description={`Tem certeza que deseja remover ${student.name} da equipe ${team.name}?`}
-                      confirmText="Remover"
-                      cancelText="Cancelar"
-                    >
-                      {(show) => (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={show(() => handleRemoveStudent(student.id, student.name))}
-                          disabled={removeLoading}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </ActionConfirmationModal>
+                    {!readonly && ( // ✅ Botões de controle no popup também respeitam o modo readonly
+                      <ActionConfirmationModal
+                        title={`Remover ${student.name}`}
+                        description={`Tem certeza que deseja remover ${student.name} da equipe ${team.name}?`}
+                        confirmText="Remover"
+                        cancelText="Cancelar"
+                      >
+                        {(show) => (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={show(() => handleRemoveStudent(student.id, student.name))}
+                            disabled={removeLoading}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </ActionConfirmationModal>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-          <DialogFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
-            <Button variant="outline" onClick={() => setMembersOpen(false)}>
-              Fechar
-            </Button>
-            {onOpenAddMemberModal && (
-              <Button
-                variant="default"
-                onClick={() => {
-                  setMembersOpen(false);
-                  onOpenAddMemberModal(team.id);
-                }}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar Membro
+          {!readonly && ( // ✅ Botão de adicionar membro respeita o modo readonly
+            <DialogFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
+              <Button variant="outline" onClick={() => setMembersOpen(false)}>
+                Fechar
               </Button>
-            )}
-          </DialogFooter>
+              {onOpenAddMemberModal && (
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setMembersOpen(false);
+                    onOpenAddMemberModal(team.id);
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar Membro
+                </Button>
+              )}
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </Card>
