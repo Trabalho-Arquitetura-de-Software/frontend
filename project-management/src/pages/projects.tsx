@@ -149,7 +149,7 @@ export default function Projects() {
   });
 
   const handleNewProjectSubmit = (formData) => {
-    console.log("Novo projeto:", formData);
+    formData.requester = JSON.parse(localStorage.getItem('user') || "{}").id; // Pega o ID do usuário do localStorage
     saveProject({ variables: formData });
   };
 
