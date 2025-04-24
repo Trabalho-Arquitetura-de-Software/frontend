@@ -13,11 +13,15 @@ const FIND_ALL_PROJECTS = gql`
   }
 `
 
-const ASSIGN_PROJECT = gql`
-  mutation AssignProjectToGroup($groupId: ID!, $projectId: ID!) {
-    assignProjectToGroup(groupId: $groupId, projectId: $projectId) {
+const UPDATE_PROJECT = gql`
+  mutation UpdateProject($id: ID!, $group: ID) {
+    updateProject(id: $id, group: $group) {
       id
       name
+      group {
+        id
+        name
+      }
     }
   }
 `
@@ -41,17 +45,21 @@ interface FindAllProjectsData {
 export function AssignProjectModal({ open, groupId, onClose, refetch }: Props) {
   const { data, loading } = useQuery<FindAllProjectsData>(FIND_ALL_PROJECTS)
   const [selectedProject, setSelectedProject] = useState<string>("")
-  const [assignProject, { loading: assigning }] = useMutation(ASSIGN_PROJECT)
+  const [updateProject, { loading: updating }] = useMutation(UPDATE_PROJECT)
 
   const handleAssign = async () => {
-    await assignProject({
-      variables: {
-        groupId,
-        projectId: selectedProject,
-      },
-    })
-    refetch()
-    onClose()
+    try {
+      await updateProject({
+        variables: {
+          id: selectedProject,  // id do projeto
+          group: groupId        // id do grupo
+        },
+      })
+      refetch()
+      onClose()
+    } catch (error) {
+      console.error("Erro ao atribuir projeto à equipe:", error)
+    }
   }
 
   return (
@@ -79,7 +87,7 @@ export function AssignProjectModal({ open, groupId, onClose, refetch }: Props) {
             </SelectContent>
           </Select>
 
-          <Button disabled={!selectedProject || assigning} onClick={handleAssign}>
+          <Button disabled={!selectedProject || updating} onClick={handleAssign}>
             Atribuir
           </Button>
         </div>
