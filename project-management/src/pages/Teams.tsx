@@ -8,8 +8,9 @@ import { Separator } from "@/components/ui/separator"
 import { gql, useQuery, useMutation } from "@apollo/client"
 import { NewGroupModal, CreateGroupData } from "@/components/modal/new-group-modal"
 import { TeamCard } from "@/components/team-card"
+import { AddMemberModal } from "@/components/modal/AddMemberModal"
+import { AssignProjectModal } from "@/components/modal/AssignProjectModal"
 
-// Interfaces
 interface Student {
   id: string
   name: string
@@ -39,7 +40,6 @@ interface Team {
   availableForProjects?: boolean
 }
 
-// Queries e Mutations
 const FIND_ALL_GROUPS = gql`
   query FindAllGroups {
     findAllGroups {
@@ -63,8 +63,8 @@ const FIND_ALL_GROUPS = gql`
 `
 
 const SAVE_GROUP = gql`
-  mutation SaveGroup($coordinator: ID!, $name: String!, $students: [ID!]!) {
-    saveGroup(coordinator: $coordinator, name: $name, students: $students) {
+  mutation SaveGroup($coordinator: ID!, $name: String!) {
+    saveGroup(coordinator: $coordinator, name: $name) {
       id
       name
       students {
@@ -83,16 +83,18 @@ export function Teams() {
   const [teams, setTeams] = useState<Team[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [newGroupOpen, setNewGroupOpen] = useState(false)
-  const [createGroup] = useMutation(SAVE_GROUP)
+  const [addMemberModalOpen, setAddMemberModalOpen] = useState(false)
+  const [assignModalOpen, setAssignModalOpen] = useState(false)
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
 
   const { data, loading, error, refetch } = useQuery<{ findAllGroups: Group[] }>(FIND_ALL_GROUPS)
+  const [createGroup] = useMutation(SAVE_GROUP)
 
   const handleCreateGroup = (data: CreateGroupData) => {
     createGroup({
       variables: {
         name: data.name,
         coordinator: data.coordinatorId,
-        students: data.studentIds,
       },
     })
       .then(() => {
@@ -104,8 +106,18 @@ export function Teams() {
       })
   }
 
+  const handleOpenAddMemberModal = (groupId: string) => {
+    setSelectedGroupId(groupId)
+    setAddMemberModalOpen(true)
+  }
+
+  const handleOpenAssignProjectModal = (groupId: string) => {
+    setSelectedGroupId(groupId)
+    setAssignModalOpen(true)
+  }
+
   useEffect(() => {
-    if (data && data.findAllGroups) {
+    if (data?.findAllGroups) {
       const mappedTeams: Team[] = data.findAllGroups.map((group) => ({
         id: group.id,
         name: group.name,
@@ -119,19 +131,17 @@ export function Teams() {
     }
   }, [data])
 
-  // Efeito para ajustar o layout da página
   useEffect(() => {
-    const rootElement = document.getElementById("root");
+    const rootElement = document.getElementById("root")
     if (rootElement) {
-      rootElement.style.maxWidth = "100%";
-      rootElement.style.padding = "0";
-
+      rootElement.style.maxWidth = "100%"
+      rootElement.style.padding = "0"
       return () => {
-        rootElement.style.maxWidth = "1280px";
-        rootElement.style.padding = "2rem";
-      };
+        rootElement.style.maxWidth = "1280px"
+        rootElement.style.padding = "2rem"
+      }
     }
-  }, []);
+  }, [])
 
   const filteredTeams = teams.filter(
     (team) =>
@@ -184,11 +194,13 @@ export function Teams() {
               {filteredTeams.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredTeams.map((team) => (
-                    <TeamCard 
-                      key={team.id} 
-                      team={team} 
+                    <TeamCard
+                      key={team.id}
+                      team={team}
                       setTeams={setTeams}
                       refetch={refetch}
+                      onOpenAddMemberModal={handleOpenAddMemberModal}
+                      onOpenAssignProjectModal={handleOpenAssignProjectModal}
                     />
                   ))}
                 </div>
@@ -216,6 +228,24 @@ export function Teams() {
         onSubmit={handleCreateGroup}
         onClose={() => setNewGroupOpen(false)}
       />
+
+      {selectedGroupId && (
+        <>
+          <AddMemberModal
+            open={addMemberModalOpen}
+            onClose={() => setAddMemberModalOpen(false)}
+            groupId={selectedGroupId}
+            refetch={refetch}
+          />
+
+          <AssignProjectModal
+            open={assignModalOpen}
+            groupId={selectedGroupId}
+            onClose={() => setAssignModalOpen(false)}
+            refetch={refetch}
+          />
+        </>
+      )}
     </SidebarProvider>
   )
 }

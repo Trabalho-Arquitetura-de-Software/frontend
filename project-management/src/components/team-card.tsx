@@ -3,12 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { gql, useMutation } from "@apollo/client";
 import { toast } from "@/hooks/use-toast";
 import { ActionConfirmationModal } from "@/components/modal/action-confirmation-modal";
 
-// Defina as interfaces necessárias
 interface Student {
   id: string;
   name: string;
@@ -24,7 +23,6 @@ interface Team {
   availableForProjects?: boolean;
 }
 
-// Mutations usadas pelo componente
 const UPDATE_GROUP_AVAILABILITY = gql`
   mutation UpdateGroupAvailability($id: ID!, $availableForProjects: Boolean!) {
     updateGroup(id: $id, availableForProjects: $availableForProjects) {
@@ -49,39 +47,43 @@ interface TeamCardProps {
   team: Team;
   setTeams: React.Dispatch<React.SetStateAction<Team[]>>;
   refetch: () => void;
+  onOpenAddMemberModal?: (groupId: string) => void;
+  onOpenAssignProjectModal?: (groupId: string) => void; // ✅ nova prop
 }
 
-export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
+export function TeamCard({
+  team,
+  setTeams,
+  refetch,
+  onOpenAddMemberModal,
+  onOpenAssignProjectModal, // ✅
+}: TeamCardProps) {
   const [membersOpen, setMembersOpen] = useState(false);
   const [updateGroup] = useMutation(UPDATE_GROUP_AVAILABILITY);
   const [removeStudent, { loading: removeLoading }] = useMutation(REMOVE_STUDENT_FROM_GROUP, {
     onCompleted: (data) => {
       if (data.groupRemoveStudent && Array.isArray(data.groupRemoveStudent.students)) {
-        // Atualiza o estado local com a lista atualizada de estudantes retornada pelo servidor
         setTeams(prevTeams =>
-          prevTeams.map(prevTeam => {
-            if (prevTeam.id === team.id) {
-              return {
-                ...prevTeam,
-                members: data.groupRemoveStudent.students.length,
-                memberInfos: data.groupRemoveStudent.students
-              }
-            }
-            return prevTeam
-          })
+          prevTeams.map(prevTeam =>
+            prevTeam.id === team.id
+              ? {
+                  ...prevTeam,
+                  members: data.groupRemoveStudent.students.length,
+                  memberInfos: data.groupRemoveStudent.students,
+                }
+              : prevTeam
+          )
         );
-        
         toast({
           title: "Sucesso",
-          description: "Estudante removido da equipe com sucesso."
+          description: "Estudante removido da equipe com sucesso.",
         });
       } else {
         toast({
           title: "Aviso",
           description: "A operação foi concluída, mas houve um problema com a resposta do servidor.",
-          variant: "destructive"
+          variant: "destructive",
         });
-        // Ainda assim, forçamos um refetch para garantir sincronização
         refetch();
       }
     },
@@ -90,9 +92,9 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
       toast({
         title: "Erro",
         description: `Falha ao remover estudante: ${err.message}`,
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const handleToggleAvailability = () => {
@@ -101,19 +103,17 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
         id: team.id,
         availableForProjects: !team.availableForProjects,
       },
-    })
-      .then(() => {
-        setTeams((prevTeams) =>
-          prevTeams.map((prevTeam) =>
-            prevTeam.id === team.id
-              ? { ...prevTeam, availableForProjects: !team.availableForProjects }
-              : prevTeam
-          )
+    }).then(() => {
+      setTeams(prevTeams =>
+        prevTeams.map(prevTeam =>
+          prevTeam.id === team.id
+            ? { ...prevTeam, availableForProjects: !team.availableForProjects }
+            : prevTeam
         )
-      })
-      .catch((err) => {
-        console.error("Erro ao atualizar disponibilidade da equipe:", err)
-      })
+      );
+    }).catch((err) => {
+      console.error("Erro ao atualizar disponibilidade da equipe:", err);
+    });
   };
 
   const handleRemoveStudent = (studentId: string, studentName: string) => {
@@ -125,11 +125,9 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
     removeStudent({
       variables: {
         groupId: team.id,
-        studentId
+        studentId,
       }
     }).catch(() => {
-      // Em caso de erro na Promise (que já é tratado no onError da mutation)
-      // Forçamos um refetch para garantir a consistência dos dados
       refetch();
     });
   };
@@ -140,11 +138,11 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-semibold">{team.name}</CardTitle>
-              <div
-                className="inline-flex items-center rounded-full border border-gray-200 bg-transparent px-2.5 py-0.5 text-xs font-normal text-gray-700 cursor-pointer"
-                onClick={() => setMembersOpen(true)}
-              >
-                {team.members} membros
+            <div
+              className="inline-flex items-center rounded-full border border-gray-200 bg-transparent px-2.5 py-0.5 text-xs font-normal text-gray-700 cursor-pointer"
+              onClick={() => setMembersOpen(true)}
+            >
+              {team.members} membros
             </div>
           </div>
           <div className="min-h-[20px] mt-2">
@@ -176,12 +174,17 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
         <Separator />
         <CardFooter className="pt-3 pb-3 flex gap-2">
           {team.availableForProjects && (
-            <Button variant="outline" size="sm" className="w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => onOpenAssignProjectModal?.(team.id)} // ✅ funcional
+            >
               Atribuir projeto
             </Button>
           )}
           <Button
-            variant={"default"}
+            variant="default"
             size="sm"
             className="w-full"
             onClick={handleToggleAvailability}
@@ -197,7 +200,7 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
             <DialogTitle>Membros da Equipe {team.name}</DialogTitle>
           </DialogHeader>
           <div className="max-h-[300px] overflow-y-auto">
-            {team.memberInfos?.length === 0 ? (
+            {team.memberInfos && team.memberInfos.length === 0 ? (
               <p className="text-center text-gray-500 py-4">Esta equipe não possui membros.</p>
             ) : (
               <ul className="space-y-2">
@@ -227,10 +230,23 @@ export function TeamCard({ team, setTeams, refetch }: TeamCardProps) {
               </ul>
             )}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
             <Button variant="outline" onClick={() => setMembersOpen(false)}>
               Fechar
             </Button>
+            {onOpenAddMemberModal && (
+              <Button
+                variant="default"
+                onClick={() => {
+                  setMembersOpen(false);
+                  onOpenAddMemberModal(team.id);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Membro
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
