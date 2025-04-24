@@ -3,23 +3,13 @@ import { Plus, Search, Users } from "lucide-react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { gql, useQuery, useMutation } from "@apollo/client"
 import { NewGroupModal, CreateGroupData } from "@/components/modal/new-group-modal"
+import { TeamCard } from "@/components/team-card"
 
-interface Team {
-  id: string
-  name: string
-  professor: string
-  project: string | null
-  members?: number
-  memberNames?: string[]
-  availableForProjects?: boolean
-}
-
+// Interfaces
 interface Student {
   id: string
   name: string
@@ -39,6 +29,17 @@ interface Group {
   projects: Project[]
 }
 
+interface Team {
+  id: string
+  name: string
+  professor: string
+  project: string | null
+  members?: number
+  memberInfos?: Student[]
+  availableForProjects?: boolean
+}
+
+// Queries e Mutations
 const FIND_ALL_GROUPS = gql`
   query FindAllGroups {
     findAllGroups {
@@ -78,15 +79,6 @@ const SAVE_GROUP = gql`
   }
 `
 
-const UPDATE_GROUP_AVAILABILITY = gql`
-  mutation UpdateGroupAvailability($id: ID!, $availableForProjects: Boolean!) {
-    updateGroup(id: $id, availableForProjects: $availableForProjects) {
-      id
-      availableForProjects
-    }
-  }
-`
-
 export function Teams() {
   const [teams, setTeams] = useState<Team[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -120,21 +112,26 @@ export function Teams() {
         professor: group.coordinator?.name ?? "Desconhecido",
         project: group.projects?.[0]?.name ?? null,
         members: group.students.length,
-        memberNames: group.students.map((student) => student.name),
+        memberInfos: group.students,
         availableForProjects: group.availableForProjects,
       }))
       setTeams(mappedTeams)
     }
   }, [data])
 
-  // Corrige a responsividade de verdade
+  // Efeito para ajustar o layout da página
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      window.dispatchEvent(new Event("resize"))
-    }, 100) // atraso de 100ms
+    const rootElement = document.getElementById("root");
+    if (rootElement) {
+      rootElement.style.maxWidth = "100%";
+      rootElement.style.padding = "0";
 
-    return () => clearTimeout(timeout)
-  }, [])
+      return () => {
+        rootElement.style.maxWidth = "1280px";
+        rootElement.style.padding = "2rem";
+      };
+    }
+  }, []);
 
   const filteredTeams = teams.filter(
     (team) =>
@@ -187,7 +184,12 @@ export function Teams() {
               {filteredTeams.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredTeams.map((team) => (
-                    <TeamCard key={team.id} team={team} setTeams={setTeams} />
+                    <TeamCard 
+                      key={team.id} 
+                      team={team} 
+                      setTeams={setTeams}
+                      refetch={refetch}
+                    />
                   ))}
                 </div>
               ) : (
@@ -215,110 +217,5 @@ export function Teams() {
         onClose={() => setNewGroupOpen(false)}
       />
     </SidebarProvider>
-  )
-}
-
-function TeamCard({ team, setTeams }: { team: Team, setTeams: React.Dispatch<React.SetStateAction<Team[]>> }) {
-  const [membersOpen, setMembersOpen] = useState(false)
-  const [updateGroup] = useMutation(UPDATE_GROUP_AVAILABILITY)
-
-  const handleToggleAvailability = () => {
-    updateGroup({
-      variables: {
-        id: team.id,
-        availableForProjects: !team.availableForProjects,
-      },
-    })
-      .then(() => {
-        setTeams((prevTeams) =>
-          prevTeams.map((prevTeam) =>
-            prevTeam.id === team.id
-              ? { ...prevTeam, availableForProjects: !team.availableForProjects }
-              : prevTeam
-          )
-        )
-      })
-      .catch((err) => {
-        console.error("Erro ao atualizar disponibilidade da equipe:", err)
-      })
-  }
-
-  return (
-    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md h-[220px] flex flex-col justify-between">
-      <div>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-lg font-semibold">{team.name}</CardTitle>
-            {team.members && (
-              <div
-                className="inline-flex items-center rounded-full border border-gray-200 bg-transparent px-2.5 py-0.5 text-xs font-normal text-gray-700 cursor-pointer"
-                onClick={() => setMembersOpen(true)}
-              >
-                {team.members} membros
-              </div>
-            )}
-          </div>
-          <div className="min-h-[20px] mt-2">
-            {!team.availableForProjects && (
-              <p className="text-xs text-red-500">Equipe desativada</p>
-            )}
-          </div>
-        </CardHeader>
-
-        <CardContent className="pb-4">
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-500">Professor</span>
-              <span className="text-sm text-gray-700">{team.professor}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-500">Projeto</span>
-              {team.project ? (
-                <span className="text-sm text-gray-700">{team.project}</span>
-              ) : (
-                <span className="text-sm text-red-500">Sem projeto</span>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </div>
-
-      <div>
-        <Separator />
-        <CardFooter className="pt-3 pb-3 flex gap-2">
-          {team.availableForProjects && (
-            <Button variant="outline" size="sm" className="w-full">
-              Atribuir projeto
-            </Button>
-          )}
-          <Button
-            variant={team.availableForProjects ? "destructive" : "default"}
-            size="sm"
-            className="w-full"
-            onClick={handleToggleAvailability}
-          >
-            {team.availableForProjects ? "Desativar equipe" : "Ativar equipe"}
-          </Button>
-        </CardFooter>
-      </div>
-
-      <Dialog open={membersOpen} onOpenChange={setMembersOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Membros da Equipe {team.name}</DialogTitle>
-          </DialogHeader>
-          <ul className="space-y-2">
-            {team.memberNames?.map((name, index) => (
-              <li key={index} className="text-sm text-gray-700">{name}</li>
-            ))}
-          </ul>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMembersOpen(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Card>
   )
 }
