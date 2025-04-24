@@ -269,6 +269,7 @@ export default function Projects() {
                         onEdit={handleEditProject}
                         refetch={refetch}
                         groups={groups}
+                        readonly={false} // Explicitamente false, ou pode omitir pois é o valor padrão
                       />
                     ))}
                   </div>
