@@ -93,10 +93,10 @@ interface ProjectCardProps {
     onAssign?: (id: string) => void;
     refetch?: () => void;
     groups: Array<{ id: string; name: string }>;
+    readonly?: boolean; // Nova propriedade para controlar se o card pode ser editado
 }
 
-// Código do ProjectCard sem alterações para posicionamento absoluto
-export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, groups }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, groups, readonly = false }: ProjectCardProps) {
     // Estado para controlar o modo de edição
     const [isEditing, setIsEditing] = useState(false);
 
@@ -429,18 +429,20 @@ export function ProjectCard({ project, onEdit, onDelete, onAssign, refetch, grou
                             <span className="font-medium">Data de Início:</span> {formatDate(project.expectedStartDate)}
                         </p>
 
-                        {/* Botão de editar fixado no canto inferior direito */}
-                        <div className="absolute bottom-4 right-4">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-primary-dark hover:text-primary-darker"
-                                onClick={handleEditClick}
-                            >
-                                <Pencil className="h-4 w-4 mr-1" />
-                                Editar
-                            </Button>
-                        </div>
+                        {/* Botão de editar - mostra apenas se não for readonly */}
+                        {!readonly && (
+                            <div className="absolute bottom-4 right-4">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-primary-dark hover:text-primary-darker"
+                                    onClick={handleEditClick}
+                                >
+                                    <Pencil className="h-4 w-4 mr-1" />
+                                    Editar
+                                </Button>
+                            </div>
+                        )}
                     </>
                 )}
             </CardContent>
