@@ -97,7 +97,7 @@ export function SelectProjectModal() {
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-[576px]">
       <DialogHeader>
         <DialogTitle>Solicitar projeto</DialogTitle>
         <DialogDescription>
@@ -121,16 +121,31 @@ export function SelectProjectModal() {
         <label className="block font-semibold">Resumo do escopo</label>
         <input type="text" name="summaryScope" value={formData.summaryScope} onChange={handleChange} className="border p-2 w-full" />
       </div>
+      
+      <div className="flex flex-row gap-4">
+  <div className="w-1/2">
+    <label className="block font-semibold">Público-alvo</label>
+    <input
+      type="text"
+      name="targetAudience"
+      value={formData.targetAudience}
+      onChange={handleChange}
+      className="border p-2 w-full"
+    />
+  </div>
 
-      <div>
-        <label className="block font-semibold">Público-alvo</label>
-        <input type="text" name="targetAudience" value={formData.targetAudience} onChange={handleChange} className="border p-2 w-full" />
-      </div>
-
-      <div>
-        <label className="block font-semibold">Data de início esperada</label>
-        <input type="date" name="expectedStartDate" value={formData.expectedStartDate} onChange={handleChange} className="border p-2 w-full" />
-      </div>
+  <div className="w-1/2">
+    <label className="block font-semibold">Data de início esperada</label>
+    <input
+      type="date"
+      name="expectedStartDate"
+      value={formData.expectedStartDate}
+      onChange={handleChange}
+      className="border p-2 w-full"
+    />
+  </div>
+</div>
+      
 
       {/* <div>
         <label className="block font-semibold">Solicitante (ID)</label>
